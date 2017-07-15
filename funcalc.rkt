@@ -52,24 +52,31 @@
         (side-condition (not (zero? (term n))))
         if-ff)
 
-   ;; Cell-reference look-up:= reference already computed.
+   ;; Cell-reference look-up: reference already computed.
    (--> (sheet cv_1 ... (ca_r := v) cv_2 ... (ca := (in-hole E ca_r)) ce_4 ...)
         (sheet cv_1 ... (ca_r := v) cv_2 ... (ca := (in-hole E v))    ce_4 ...)
-        v-ref)
+        ref-v)
 
-   ;; Cell-reference look-up:= reference not yet computed, sort one step!
+   ;; Cell-reference look-up: reference not yet computed, sort one step!
    (--> (sheet cv_1 ... (ca := (in-hole E ca_r)) ce_2 ... (ca_r := e) ce_3 ...)
         (sheet cv_1 ... (ca_r := e) (ca := (in-hole E ca_r)) ce_2 ... ce_3 ...)
-        e-ref)))
+        ref-e)
+
+   ;; Cell-reference look-up: referenced cell is empty.
+   (--> (sheet (ca_1 := v) ... (ca := (in-hole E ca_r)) (ca_2 := e) ...)
+        (sheet (ca_1 := v) ... (ca := (err "#EMPTY"))   (ca_2 := e) ...)
+        (side-condition (not (member (term ca_r) (append (term (ca_1 ...)) (term (ca_2 ...))))))
+        ref-empty)))
 
 
 (define s1 (term (sheet ((rc 1 1) := (1 + 1)))))
 (define s2 (term (sheet ((rc 1 1) := (1 + 1))         ((rc 1 2) := (0 = 2)))))
 (define s3 (term (sheet ((rc 1 1) := (1 + 1))         ((rc 1 2) := (0 = 2)) ((rc 2 1) := (IF (1 = 2) 0 1)))))
 (define s4 (term (sheet ((rc 1 1) := ((1 + 1) + (rc 1 2))) ((rc 1 2) := 42))))
-(define s5 (term (sheet ((rc 1 1) := 42)  ((rc 1 2) := (rc 1 1)))))
+(define s5 (term (sheet ((rc 1 1) := 42)              ((rc 1 2) := (rc 1 1)))))
 (define s6 (term (sheet ((rc 1 1) := ((rc 1 2) + 1))  ((rc 1 2) := 42))))
 (define s7 (term (sheet ((rc 1 1) := ((rc 1 2) + 1))  ((rc 1 2) := (41 + 1)))))
+(define s8 (term (sheet ((rc 1 1) := ((rc 1 3) + 1))  ((rc 1 2) := (41 + 1)))))
 
 (test-equal (redex-match? mini-calc σ s1) #t)
 (test-equal (redex-match? mini-calc σ s2) #t)
@@ -78,6 +85,7 @@
 (test-equal (redex-match? mini-calc σ s5) #t)
 (test-equal (redex-match? mini-calc σ s6) #t)
 (test-equal (redex-match? mini-calc σ s7) #t)
+(test-equal (redex-match? mini-calc σ s8) #t)
 
 (apply-reduction-relation* ->mini-calc s1)
 (apply-reduction-relation* ->mini-calc s2)
@@ -86,6 +94,7 @@
 (apply-reduction-relation* ->mini-calc s5)
 (apply-reduction-relation* ->mini-calc s6)
 (apply-reduction-relation* ->mini-calc s7)
+(apply-reduction-relation* ->mini-calc s8)
 
 
 (define-extended-language λ-calc mini-calc-S
