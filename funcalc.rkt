@@ -4,10 +4,14 @@
 
 (define-language mini-calc
   (n ::= real)
+  (i ::= integer)
   (t ::= string)
   (v ::= n t (err string))
-  (i ::= integer)
-  (ca ::= (rc i i))
+  (ca ::=
+      (rc  i   i)   ; absolute
+      (rc [i]  i)   ; row-relative
+      (rc  i  [i])  ; column-relative
+      (rc [i] [i])) ; relative
   ;; Formula expressions.
   (e ::=
      v
@@ -29,6 +33,13 @@
   (cv ::= (ca := v))
   (ce ::= (ca := e))
   (S ::= (σ cv ... (ca := E) ce ...)))
+
+(define-metafunction mini-calc
+  lookup : ca ca -> ca
+  [(lookup (rc [i_1]  i_2)  (rc i_3 _))   (rc ,(+ (term i_1) (term i_3)) i_2)]
+  [(lookup (rc  i_1  [i_2]) (rc _ i_3))   (rc i_1                        ,(+ (term i_2) (term i_3)))]
+  [(lookup (rc [i_1] [i_2]) (rc i_3 i_4)) (rc ,(+ (term i_1) (term i_3)) ,(+ (term i_2) (term i_3)))]
+  [(lookup ca _)                          ca])
 
 (define ->mini-calc
   (reduction-relation mini-calc-S
@@ -53,13 +64,15 @@
         if-ff)
 
    ;; Cell-reference look-up: reference already computed.
-   (--> (σ cv_1 ... (ca_r := v) cv_2 ... (ca := (in-hole E ca_r)) ce_4 ...)
-        (σ cv_1 ... (ca_r := v) cv_2 ... (ca := (in-hole E v))    ce_4 ...)
+   (--> (σ cv_1 ... (ca_a := v) cv_2 ... (ca := (in-hole E ca_r)) ce_4 ...)
+        (σ cv_1 ... (ca_a := v) cv_2 ... (ca := (in-hole E v))    ce_4 ...)
+        (where ca_a (lookup ca_r ca))
         ref-v)
 
    ;; Cell-reference look-up: reference not yet computed, sort one step!
-   (--> (σ cv_1 ... (ca := (in-hole E ca_r)) ce_2 ... (ca_r := e) ce_3 ...)
-        (σ cv_1 ... (ca_r := e) (ca := (in-hole E ca_r)) ce_2 ... ce_3 ...)
+   (--> (σ cv_1 ... (ca := (in-hole E ca_l)) ce_2 ... (ca_r := e) ce_3 ...)
+        (σ cv_1 ... (ca_a := e) (ca := (in-hole E ca_r)) ce_2 ... ce_3 ...)
+        (where ca_a (lookup ca_r ca))
         ref-e)
 
    ;; Cell-reference look-up: referenced cell is empty.
