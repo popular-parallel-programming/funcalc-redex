@@ -142,7 +142,7 @@
   (v ::=
      ....
      [[v ... ] ...]
-     (λ (x x ...) e))
+     (λ (x ...) e))
 
   (x ::= variable-not-otherwise-mentioned)
 
@@ -151,10 +151,11 @@
      (E e)
      (v E)
      [[v ...] ... [v ... E ca ...] [ca ...] ...]
+     ((λ (x ...) e) v ... E e ...)
      (MAP (λ (x x ...) e) v ... E e ...))
 
   #:binding-forms
-  (λ (x ...) e #:refers-to x ...))
+  (λ (x ...) e #:refers-to (shadow x ...)))
 
 
 (define (unpack/racket r_min r_max c_min c_max)
@@ -175,7 +176,8 @@
   (extend-reduction-relation ->mini-calc λ-calc
     #:domain s
     (--> (in-hole S ((λ (x ...) e) v ...))
-         (in-hole S (substitute v ... x ... e))
+         (in-hole S (substitute e x ... v ...))
+         (side-condition (eq? (length '(x ...)) (length '(v ...))))
          app)
 
     (--> (σ (ca_v1 := v_1) ... (ca := (in-hole E (ca_1 : ca_2))) (ca_e1 := e_1) ...)
