@@ -87,10 +87,10 @@
 (define s2 (term (σ ((rc 1 1) := (1 + 1))         ((rc 1 2) := (0 = 2)))))
 (define s3 (term (σ ((rc 1 1) := (1 + 1))         ((rc 1 2) := (0 = 2)) ((rc 2 1) := (IF (1 = 2) 0 1)))))
 (define s4 (term (σ ((rc 1 1) := ((1 + 1) + (rc 1 2))) ((rc 1 2) := 42))))
-(define s5 (term (σ ((rc 1 1) := 42)              ((rc 1 2) := (rc 1 1)))))
+(define s5 (term (σ ((rc 1 1) := 42)              ((rc 1 2) := (rc [0] [-1])))))
 (define s6 (term (σ ((rc 1 1) := ((rc 1 2) + 1))  ((rc 1 2) := 42))))
 (define s7 (term (σ ((rc 1 1) := ((rc 1 2) + 1))  ((rc 1 2) := (41 + 1)))))
-(define s8 (term (σ ((rc 1 1) := ((rc 1 3) + 1))  ((rc 1 2) := (41 + 1)))))
+(define s8 (term (σ ((rc 1 1) := ((rc [0] [1]) + 1))  ((rc 1 2) := (41 + 1)))))
 
 (test-equal (redex-match? mini-calc s s1) #t)
 (test-equal (redex-match? mini-calc s s2) #t)
