@@ -135,10 +135,10 @@
   (e ::=
      ....
      x
-     (ca : ca) ;; -> [[v ...] ...]
-     [[e ...] ...]
+     (ca : ca) ;  [[v ...] ...] via unpack
+     [[e ...] ...] ; TODO: Can we avoid having this?
      (e e)
-     (MAP e e ...))
+     (MAP e ...))
 
   (v ::=
      ....
@@ -150,9 +150,9 @@
   (E ::=
      ....
      (E e ...)
-     ((λ (x ...) e) v ... E e ...)
-     [[v ...] ... [v ... E e ...] [e ...] ...]
-     (MAP (λ (x ...) e) v ... E e ...))
+     ((λ (x ...) e) v ... E e ...) ; For evaluating args.
+     [[v ...] ... [v ... E e ...] [e ...] ...] ; For evaluating arrays.
+     (MAP v ... E e ...))
 
   #:binding-forms
   (λ (x ...) e #:refers-to (shadow x ...)))
@@ -189,6 +189,7 @@
          map)))
 
 
+;; λ-calc tests
 (define s11 (term (σ ((rc 2 3) := ((rc 1 1) : (rc 2 2)))
                      ((rc 1 1) := 1)
                      ((rc 1 2) := (1 + (rc [0] [-1])))
