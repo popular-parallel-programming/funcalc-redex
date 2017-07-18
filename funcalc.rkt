@@ -154,7 +154,7 @@
      (MAP (λ (x x ...) e) v ... E e ...))
 
   #:binding-forms
-  (λ (x_1 x_2 ...) e #:refers-to x_1 x_2 ...))
+  (λ (x ...) e #:refers-to x ...))
 
 
 (define (unpack/racket r_min r_max c_min c_max)
