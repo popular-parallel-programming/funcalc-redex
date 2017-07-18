@@ -174,12 +174,9 @@
 (define ->λ-calc
   (extend-reduction-relation ->mini-calc λ-calc
     #:domain s
-    (--> (in-hole S ((λ (x) e_1) e_2))
-         (in-hole S (substitute e_2 x e_2))
+    (--> (in-hole S ((λ (x ...) e) v ...))
+         (in-hole S (substitute v ... x ... e))
          app)
-    (--> (in-hole S ((λ (x_1 x_2 ...) e) e_1 e_2 ...))
-         (in-hole S ((λ (x_2 ...) (substitute e_1 x_1 e)) e_2 ...))
-         app*)
 
     (--> (σ (ca_v1 := v_1) ... (ca := (in-hole E (ca_1 : ca_2))) (ca_e1 := e_1) ...)
          (σ (ca_v1 := v_1) ... (ca := (in-hole E (unpack (ca_1 : ca_2) ca))) (ca_e1 := e_1) ...)
