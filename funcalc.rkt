@@ -30,16 +30,16 @@
      (E = e)
      (v = E)
      (IF E e e))
-  (cv ::= (ca := v))
-  (ce ::= (ca := e))
-  (S ::= (σ cv ... (ca := E) ce ...)))
+  (S ::= (σ (ca_v := v) ... (ca := E) (ca_e := e) ...)))
+
 
 (define-metafunction mini-calc
   lookup : ca ca -> ca
   [(lookup (rc [i_1]  i_2)  (rc i_3 _))   (rc ,(+ (term i_1) (term i_3)) i_2)]
-  [(lookup (rc  i_1  [i_2]) (rc _ i_3))   (rc i_1                        ,(+ (term i_2) (term i_3)))]
+  [(lookup (rc  i_1  [i_2]) (rc _ i_4))   (rc i_1                        ,(+ (term i_2) (term i_4)))]
   [(lookup (rc [i_1] [i_2]) (rc i_3 i_4)) (rc ,(+ (term i_1) (term i_3)) ,(+ (term i_2) (term i_4)))]
   [(lookup ca _)                          ca])
+
 
 (define ->mini-calc
   (reduction-relation mini-calc-S
@@ -70,7 +70,7 @@
         ref-v)
 
    ;; Cell-reference look-up: reference not yet computed, sort one step!
-   (--> (σ (ca_1 := v_1) ... (ca := (in-hole E ca_l)) (ca_2 := e_2) ... (ca_r := e) (ca_3 := e_3) ...)
+   (--> (σ (ca_1 := v_1) ... (ca := (in-hole E ca_r)) (ca_2 := e_2) ... (ca_a := e) (ca_3 := e_3) ...)
         (σ (ca_1 := v_1) ... (ca_a := e) (ca := (in-hole E ca_r)) (ca_2 := e_2) ... (ca_3 := e_3) ...)
         (where ca_a (lookup ca_r ca))
         ref-e)
