@@ -136,6 +136,7 @@
      ....
      x
      (ca : ca) ;; -> [[v ...] ...]
+     [[e ...] ...]
      (e e)
      (MAP e e ...))
 
@@ -148,11 +149,10 @@
 
   (E ::=
      ....
-     (E e)
-     (v E)
-     [[v ...] ... [v ... E ca ...] [ca ...] ...]
+     (E e ...)
      ((λ (x ...) e) v ... E e ...)
-     (MAP (λ (x x ...) e) v ... E e ...))
+     [[v ...] ... [v ... E e ...] [e ...] ...]
+     (MAP (λ (x ...) e) v ... E e ...))
 
   #:binding-forms
   (λ (x ...) e #:refers-to (shadow x ...)))
@@ -182,8 +182,11 @@
 
     (--> (σ (ca_v1 := v_1) ... (ca := (in-hole E (ca_1 : ca_2))) (ca_e1 := e_1) ...)
          (σ (ca_v1 := v_1) ... (ca := (in-hole E (unpack (ca_1 : ca_2) ca))) (ca_e1 := e_1) ...)
-         unpack)))
+         unpack)
 
+    (--> (in-hole S (MAP (λ (x) e) [[v ...] ...]))
+         (in-hole S [[((λ (x) e) v) ...] ...])
+         map)))
 
 
 (define s11 (term (σ ((rc 2 3) := ((rc 1 1) : (rc 2 2)))
@@ -200,3 +203,18 @@
                                                         ((rc 2 1) := 2)
                                                         ((rc 2 2) := 4)
                                                         ((rc 2 3) := ((1 2) (2 4))))))
+
+(define s12 (term (σ ((rc 2 3) := (MAP (λ (x) (x + x)) ((rc 1 1) : (rc 2 2))))
+                     ((rc 1 1) := 1)
+                     ((rc 1 2) := (1 + (rc [0] [-1])))
+                     ((rc 2 1) := (1 + (rc [-1] [0])))
+                     ((rc 2 2) := ((rc [0] [-1]) + (rc [-1] [0]))))))
+
+
+(test-equal (redex-match? λ-calc s s12) #t)
+(test-equal (apply-reduction-relation* ->λ-calc s12) '((σ
+                                                        ((rc 1 1) := 1)
+                                                        ((rc 1 2) := 2)
+                                                        ((rc 2 1) := 2)
+                                                        ((rc 2 2) := 4)
+                                                        ((rc 2 3) := ((2 4) (4 8))))))
