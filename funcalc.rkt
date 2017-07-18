@@ -135,21 +135,68 @@
   (e ::=
      ....
      x
-     (ca : ca)
+     (ca : ca) ;; -> [[v ...] ...]
      (e e)
      (MAP e e ...))
+
   (v ::=
      ....
-     [[v ...] ...]
-     (λ (x ...) e))
+     [[v ... ] ...]
+     (λ (x x ...) e))
+
   (x ::= variable-not-otherwise-mentioned)
 
   (E ::=
      ....
      (E e)
      (v E)
-     (MAP E e ...)
-     (MAP (λ (x ...) e) v ... E e ...))
+     [[v ...] ... [v ... E ca ...] [ca ...] ...]
+     (MAP (λ (x x ...) e) v ... E e ...))
 
   #:binding-forms
-  (λ (x ...) e #:refers-to x ...))
+  (λ (x_1 x_2 ...) e #:refers-to x_1 x_2 ...))
+
+
+(define (unpack/racket r_min r_max c_min c_max)
+  (term ,(for/list [(r (in-range r_min (add1 r_max)))]
+           (term ,(for/list [(c (in-range c_min (add1 c_max)))]
+                    (term (rc ,r ,c)))))))
+
+
+(define-metafunction λ-calc
+  unpack : (ca : ca) ca -> e
+  [(unpack (ca_1 : ca_2) ca)
+   ,(unpack/racket (term i_r1) (term i_r2) (term i_c1) (term i_c2))
+   (where (rc i_r1 i_c1) (lookup ca_1 ca))
+   (where (rc i_r2 i_c2) (lookup ca_2 ca))])
+
+
+(define ->λ-calc
+  (extend-reduction-relation ->mini-calc λ-calc
+    #:domain s
+    (--> (in-hole S ((λ (x) e_1) e_2))
+         (in-hole S (substitute e_2 x e_2))
+         app)
+    (--> (in-hole S ((λ (x_1 x_2 ...) e) e_1 e_2 ...))
+         (in-hole S ((λ (x_2 ...) (substitute e_1 x_1 e)) e_2 ...))
+         app*)
+
+    (--> (σ (ca_v1 := v_1) ... (ca := (in-hole E (ca_1 : ca_2))) (ca_e1 := e_1) ...)
+         (σ (ca_v1 := v_1) ... (ca := (in-hole E (unpack (ca_1 : ca_2) ca))) (ca_e1 := e_1) ...)
+         unpack)))
+
+
+(define s11 (term (σ ((rc 2 2) := ((rc 1 1) : (rc 2 2)))
+                     ((rc 1 1) := 1)
+                     ((rc 1 2) := (1 + (rc [0] [-1])))
+                     ((rc 2 1) := (1 + (rc [-1] [0])))
+                     ((rc 2 2) := ((rc [0] [-1]) + (rc [-1] [0]))))))
+
+
+(test-equal (redex-match? λ-calc s s11) #t)
+(test-equal (apply-reduction-relation* ->λ-calc s11) '((σ
+                                                        ((rc 1 1) := 1)
+                                                        ((rc 1 2) := 2)
+                                                        ((rc 2 1) := 2)
+                                                        ((rc 2 2) := 4)
+                                                        ((rc 2 2) := ((1 2) (2 4))))))
