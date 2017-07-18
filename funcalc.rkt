@@ -38,7 +38,7 @@
   lookup : ca ca -> ca
   [(lookup (rc [i_1]  i_2)  (rc i_3 _))   (rc ,(+ (term i_1) (term i_3)) i_2)]
   [(lookup (rc  i_1  [i_2]) (rc _ i_3))   (rc i_1                        ,(+ (term i_2) (term i_3)))]
-  [(lookup (rc [i_1] [i_2]) (rc i_3 i_4)) (rc ,(+ (term i_1) (term i_3)) ,(+ (term i_2) (term i_3)))]
+  [(lookup (rc [i_1] [i_2]) (rc i_3 i_4)) (rc ,(+ (term i_1) (term i_3)) ,(+ (term i_2) (term i_4)))]
   [(lookup ca _)                          ca])
 
 (define ->mini-calc
@@ -64,21 +64,22 @@
         if-ff)
 
    ;; Cell-reference look-up: reference already computed.
-   (--> (σ cv_1 ... (ca_a := v) cv_2 ... (ca := (in-hole E ca_r)) ce_4 ...)
-        (σ cv_1 ... (ca_a := v) cv_2 ... (ca := (in-hole E v))    ce_4 ...)
+   (--> (σ (ca_1 := v_1) ... (ca_a := v) (ca_2 := v_2) ... (ca := (in-hole E ca_r)) (ca_3 := e_3) ...)
+        (σ (ca_1 := v_1) ... (ca_a := v) (ca_2 := v_2) ... (ca := (in-hole E v))    (ca_3 := e_3) ...)
         (where ca_a (lookup ca_r ca))
         ref-v)
 
    ;; Cell-reference look-up: reference not yet computed, sort one step!
-   (--> (σ cv_1 ... (ca := (in-hole E ca_l)) ce_2 ... (ca_r := e) ce_3 ...)
-        (σ cv_1 ... (ca_a := e) (ca := (in-hole E ca_r)) ce_2 ... ce_3 ...)
+   (--> (σ (ca_1 := v_1) ... (ca := (in-hole E ca_l)) (ca_2 := e_2) ... (ca_r := e) (ca_3 := e_3) ...)
+        (σ (ca_1 := v_1) ... (ca_a := e) (ca := (in-hole E ca_r)) (ca_2 := e_2) ... (ca_3 := e_3) ...)
         (where ca_a (lookup ca_r ca))
         ref-e)
 
    ;; Cell-reference look-up: referenced cell is empty.
    (--> (σ (ca_1 := v) ... (ca := (in-hole E ca_r)) (ca_2 := e) ...)
         (σ (ca_1 := v) ... (ca := (err "#EMPTY"))   (ca_2 := e) ...)
-        (side-condition (not (member (term ca_r) (append (term (ca_1 ...)) (term (ca_2 ...))))))
+        (where ca_a (lookup ca_r ca))
+        (side-condition (not (member (term ca_a) (append (term (ca_1 ...)) (term (ca_2 ...))))))
         ref-empty)))
 
 
