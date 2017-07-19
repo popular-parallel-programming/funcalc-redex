@@ -129,8 +129,8 @@
 (define-metafunction λ-calc
   substitute/rec : e (x ...) (v ...) -> e
   [(substitute/rec e () ()) e]
-  [(substitute/rec e (x ...) ()) (err "#ArgCount")]
-  [(substitute/rec e () (v ...)) (err "#ArgCount")]
+  ;; [(substitute/rec e (x ...) ()) (err "#ArgCount")]
+  ;; [(substitute/rec e () (v ...)) (err "#ArgCount")]
   [(substitute/rec e (x_1 x_2 ..._1) (v_1 v_2 ..._1))
    (substitute/rec (substitute e x_1 v_1) (x_2 ...) (v_2 ...))])
 
