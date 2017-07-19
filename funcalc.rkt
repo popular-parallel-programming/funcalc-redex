@@ -94,10 +94,12 @@
      (e e ...)
      (MAP e ...))
 
+  (f ::= (λ (x ...) e))
+
   (v ::=
      ....
      [[v ... ] ...]
-     (λ (x ...) e))
+     f)
 
   (x ::= variable-not-otherwise-mentioned)
 
@@ -145,10 +147,15 @@
          (in-hole S ((λ (x_2 x_3 ...) (substitute/rec e (x_1 ...) (v ...)))))
          app-part)
 
+    ;; FIXME: These are fixed-arity map. How can I generalize this?
+    (--> (in-hole S (MAP f [[v_1 ...] ...]))
+         (in-hole S [[(f v_1) ...] ...])
+         map1)
+
+    (--> (in-hole S (MAP f [[v_1 ...] ...] [[v_2 ...] ...]))
+         (in-hole S [[(f v_1 v_2) ...] ...])
+         map2)
+
     (--> (σ (ca_v1 := v_1) ... (ca := (in-hole E (ca_1 : ca_2))) (ca_e1 := e_1) ...)
          (σ (ca_v1 := v_1) ... (ca := (in-hole E (unpack (ca_1 : ca_2) ca))) (ca_e1 := e_1) ...)
-         unpack)
-
-    (--> (in-hole S (MAP (λ (x) e) [[v ...] ...]))
-         (in-hole S [[((λ (x) e) v) ...] ...])
-         map)))
+         unpack)))
