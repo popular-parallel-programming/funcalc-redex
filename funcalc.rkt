@@ -79,7 +79,7 @@
 
    ;; Cell-reference look-up: referenced cell is empty.
    (--> (σ (ca_1 := v) ... (ca := (in-hole E ca_r)) (ca_2 := e) ...)
-        (σ (ca_1 := v) ... (ca := (err "#EMPTY"))   (ca_2 := e) ...)
+        (σ (ca_1 := v) ... (ca := (err "#Empty"))   (ca_2 := e) ...)
         (where ca_a (lookup ca_r ca))
         (side-condition (not (member (term ca_a) (append (term (ca_1 ...)) (term (ca_2 ...))))))
         ref-empty)))
