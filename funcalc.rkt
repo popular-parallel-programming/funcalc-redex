@@ -91,7 +91,7 @@
      x
      (ca : ca) ;  [[v ...] ...] via unpack
      [[e ...] ...] ; TODO: Can we avoid having this?
-     (e e)
+     (e e ...)
      (MAP e ...))
 
   (v ::=
@@ -103,9 +103,8 @@
 
   (E ::=
      ....
-     (E e ...)
-     ((λ (x ...) e) v ... E e ...) ; For evaluating args.
-     [[v ...] ... [v ... E e ...] [e ...] ...] ; For evaluating arrays.
+     (v ... E e ...)
+     [[v ...] ... [e ... E e ...] [e ...] ...] ; For evaluating arrays.
      (MAP v ... E e ...))
 
   #:binding-forms
