@@ -136,6 +136,18 @@
    (substitute/rec (substitute e x_1 v_1) (x_2 ...) (v_2 ...))])
 
 
+(define-metafunction λ-calc
+  rows : v -> i
+  [(rows [[v ...] ...]) ,(length (term [[v ...] ...]))]
+  [(rows _) (err "#ArgType")])
+
+
+(define-metafunction λ-calc
+  cols : v -> i
+  [(cols [[v_1 ...] ... [v_2 ...] [v_3 ...] ...]) ,(length (term [v_2 ...]))]
+  [(cols _) (err "#ArgType")])
+
+
 (define ->λ-calc
   (extend-reduction-relation ->mini-calc λ-calc
     #:domain s
