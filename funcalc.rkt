@@ -170,3 +170,35 @@
     (--> (σ (ca_v1 := v_1) ... (ca := (in-hole E (ca_1 : ca_2))) (ca_e1 := e_1) ...)
          (σ (ca_v1 := v_1) ... (ca := (in-hole E (unpack (ca_1 : ca_2) ca))) (ca_e1 := e_1) ...)
          unpack)))
+
+
+(define-metafunction λ-calc
+  free-vars-in : e -> (x ...)
+  [(free-vars-in x)                x]
+  [(free-vars-in (e_1 + e_2))      ,(append (term (free-vars-in e_1)) (term (free-vars-in e_2)))]
+  [(free-vars-in (e_1 = e_2))      ,(append (term (free-vars-in e_1)) (term (free-vars-in e_2)))]
+  [(free-vars-in (e_1 e_2 ...))    ,(append (term (free-vars-in e_1)) (term (free-vars-in (e_2 ...))))]
+  [(free-vars-in (λ (x ...) e_1))  ,(remove* (term (x ...)) (term (free-vars-in e_1)))]
+  [(free-vars-in (IF e_1 e_2 e_3)) ,(append (term (free-vars-in e_1))
+                                            (term (free-vars-in e_2))
+                                            (term (free-vars-in e_3)))]
+
+  [(free-vars-in _) ()])
+
+
+;; TODO: Write!
+;; (define <-λ-calc
+;;   (extend-language))
+
+(define lift
+  (reduction-relation λ-calc
+    #:domain s
+    (--> (σ (ca_v1 := v) ... (ca_e1 := e_1) ... ((ca_1 : ca_2) := (in-hole E ca)) (ca_e2 := e_2) ...)
+         (σ (ca_v1 := v) ... (ca_e1 := e_1) ... ((ca_1 : ca_2) := ((in-hole E x) ca)) (ca_e2 := e_2) ...)
+         (where ca_ul (lookup ca ca_1))
+         (where ca_lr (lookup ca ca_2))
+         (fresh x))
+
+    (--> (in-hole S e)
+         (in-hole S (λ (x ...) e))
+         (where (x ...) (free-vars-in e)))))
