@@ -125,13 +125,25 @@
    (where (rc i_r2 i_c2) (lookup ca_2 ca))])
 
 
+(define-metafunction λ-calc
+  substitute/rec : e (x ...) (v ...) -> e
+  [(substitute/rec e () ()) e]
+  [(substitute/rec e (x ...) ()) (err "#ArgCount")]
+  [(substitute/rec e () (v ...)) (err "#ArgCount")]
+  [(substitute/rec e (x_1 x_2 ..._1) (v_1 v_2 ..._1))
+   (substitute/rec (substitute e x_1 v_1) (x_2 ...) (v_2 ...))])
+
+
 (define ->λ-calc
   (extend-reduction-relation ->mini-calc λ-calc
     #:domain s
-    (--> (in-hole S ((λ (x ...) e) v ...))
-         (in-hole S (substitute e x ... v ...))
-         (side-condition (eq? (length '(x ...)) (length '(v ...))))
+    (--> (in-hole S ((λ (x ..._1) e) v ..._1))
+         (in-hole S (substitute/rec e (x ...) (v ...)))
          app)
+
+    (--> (in-hole S ((λ (x_1 ..._1 x_2 x_3 ...) e) v ..._1))
+         (in-hole S ((λ (x_2 x_3 ...) (substitute/rec e (x_1 ...) (v ...)))))
+         app-part)
 
     (--> (σ (ca_v1 := v_1) ... (ca := (in-hole E (ca_1 : ca_2))) (ca_e1 := e_1) ...)
          (σ (ca_v1 := v_1) ... (ca := (in-hole E (unpack (ca_1 : ca_2) ca))) (ca_e1 := e_1) ...)
