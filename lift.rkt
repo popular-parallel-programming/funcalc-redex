@@ -48,8 +48,8 @@
 
     (--> (γ (ca ...) (x ...) ((ca_1 : ca_2) := l))
          (lft (ca_1 : ca_2) := (MAP (λ (x ...) l) (ca_ul : ca_lr) ...)) ; Can be plugged into a σ.
-         (where (ca_ul ...) ,(map (λ (x) (term (lookup ,x ca_1))) (term (ca ...))))
-         (where (ca_lr ...) ,(map (λ (x) (term (lookup ,x ca_2))) (term (ca ...))))
+         (where (ca_ul ...) ((lookup ca ca_1) ...))
+         (where (ca_lr ...) ((lookup ca ca_2) ...))
          synth)))
 
 
