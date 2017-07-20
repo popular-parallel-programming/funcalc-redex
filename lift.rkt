@@ -27,10 +27,7 @@
 
   (c ::=
      (γ (ca ...) (x ...) ((ca : ca) := e))
-     (lft (ca : ca) := l))
-
-  (Γ :: =
-     (γ (ca ...) (x ...) ((ca : ca) := L))))
+     (lft (ca : ca) := l)))
 
 
 (define lift
