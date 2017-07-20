@@ -41,7 +41,7 @@
          (γ (ca_s ... ca) (x_s ... x) ((ca_1 : ca_2) := (in-hole L x)))
          (fresh x)
          (side-condition (not (member (term ca) (term (ca_s ...)))))
-         subst-fresh)
+         subst-intrans)
 
     (--> (γ (ca ...) (x ...) ((ca_1 : ca_2) := l))
          (lft (ca_1 : ca_2) := (MAP (λ (x ...) l) (ca_ul : ca_lr) ...)) ; Can be plugged into a σ.
