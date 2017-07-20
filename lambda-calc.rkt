@@ -6,7 +6,7 @@
 (provide (all-defined-out))
 
 
-(define-extended-language λ-calc mini-calc-S
+(define-extended-language λ-calc mini-calc
   (e ::=
      ....
      x
@@ -23,37 +23,17 @@
 
   (x ::= variable-not-otherwise-mentioned)
 
-  (E ::=
-     ....
-     (f ... E e ...)
-     [[v ...] ... [v ... E e ...] [e ...] ...] ; For evaluating arrays.
-     (MAP v ... E e ...))
-
   #:binding-forms
   (λ (x ...) e #:refers-to (shadow x ...)))
 
 
-(define (unpack/racket r_min r_max c_min c_max)
-  (term ,(for/list [(r (in-range r_min (add1 r_max)))]
-           (term ,(for/list [(c (in-range c_min (add1 c_max)))]
-                    (term (rc ,r ,c)))))))
-
-
-(define-metafunction λ-calc
-  unpack : (ca : ca) ca -> e
-  [(unpack (ca_1 : ca_2) ca)
-   ,(unpack/racket (term i_r1) (term i_r2) (term i_c1) (term i_c2))
-   (where (rc i_r1 i_c1) (lookup ca_1 ca))
-   (where (rc i_r2 i_c2) (lookup ca_2 ca))])
-
-
-(define-metafunction λ-calc
-  substitute/rec : e (x ...) (v ...) -> e
-  [(substitute/rec e () ()) e]
-  ;; [(substitute/rec e (x ...) ()) (err "#ArgCount")]
-  ;; [(substitute/rec e () (v ...)) (err "#ArgCount")]
-  [(substitute/rec e (x_1 x_2 ..._1) (v_1 v_2 ..._1))
-   (substitute/rec (substitute e x_1 v_1) (x_2 ...) (v_2 ...))])
+(define-union-language λ-calc-S0 λ-calc mini-calc-S)
+(define-extended-language λ-calc-S λ-calc-S0
+  (E ::=
+     ....
+     (f ... E e ...)
+     [[v ...] ... [v ... E e ...] [e ...] ...] ; For evaluating arrays.
+     (MAP v ... E e ...)))
 
 
 (define-metafunction λ-calc
@@ -68,8 +48,30 @@
   [(cols _) (err "#ArgType")])
 
 
+(define (unpack/racket r_min r_max c_min c_max)
+  (term ,(for/list [(r (in-range r_min (add1 r_max)))]
+           (term ,(for/list [(c (in-range c_min (add1 c_max)))]
+                    (term (rc ,r ,c)))))))
+
+(define-metafunction λ-calc-S
+  unpack : (ca : ca) ca -> e
+  [(unpack (ca_1 : ca_2) ca)
+   ,(unpack/racket (term i_r1) (term i_r2) (term i_c1) (term i_c2))
+   (where (rc i_r1 i_c1) (lookup ca_1 ca))
+   (where (rc i_r2 i_c2) (lookup ca_2 ca))])
+
+
+(define-metafunction λ-calc-S
+  substitute/rec : e (x ...) (v ...) -> e
+  [(substitute/rec e () ()) e]
+  ;; [(substitute/rec e (x ...) ()) (err "#ArgCount")]
+  ;; [(substitute/rec e () (v ...)) (err "#ArgCount")]
+  [(substitute/rec e (x_1 x_2 ..._1) (v_1 v_2 ..._1))
+   (substitute/rec (substitute e x_1 v_1) (x_2 ...) (v_2 ...))])
+
+
 (define ->λ-calc
-  (extend-reduction-relation ->mini-calc λ-calc
+  (extend-reduction-relation ->mini-calc λ-calc-S
     #:domain s
     (--> (in-hole S ((λ (x ..._1) e) v ..._1))
          (in-hole S (substitute/rec e (x ...) (v ...)))
