@@ -70,27 +70,27 @@
 
 (define ->λ-calc
   (extend-reduction-relation ->mini-calc λ-calc
-                             #:domain s
-                             (--> (in-hole S ((λ (x ..._1) e) v ..._1))
-                                  (in-hole S (substitute/rec e (x ...) (v ...)))
-                                  app)
+    #:domain s
+    (--> (in-hole S ((λ (x ..._1) e) v ..._1))
+         (in-hole S (substitute/rec e (x ...) (v ...)))
+         app)
 
-                             (--> (in-hole S ((λ (x_1 ..._1 x_2 x_3 ...) e) v ..._1))
-                                  (in-hole S ((λ (x_2 x_3 ...) (substitute/rec e (x_1 ...) (v ...)))))
-                                  app-part)
+    (--> (in-hole S ((λ (x_1 ..._1 x_2 x_3 ...) e) v ..._1))
+         (in-hole S ((λ (x_2 x_3 ...) (substitute/rec e (x_1 ...) (v ...)))))
+         app-part)
 
-                             ;; FIXME: These are fixed-arity map. How can I generalize this?
-                             (--> (in-hole S (MAP f [[v_1 ...] ...]))
-                                  (in-hole S [[(f v_1) ...] ...])
-                                  map1)
+    ;; FIXME: These are fixed-arity map. How can I generalize this?
+    (--> (in-hole S (MAP f [[v_1 ...] ...]))
+         (in-hole S [[(f v_1) ...] ...])
+         map1)
 
-                             (--> (in-hole S (MAP f [[v_1 ...] ...] [[v_2 ...] ...]))
-                                  (in-hole S [[(f v_1 v_2) ...] ...])
-                                  map2)
+    (--> (in-hole S (MAP f [[v_1 ...] ...] [[v_2 ...] ...]))
+         (in-hole S [[(f v_1 v_2) ...] ...])
+         map2)
 
-                             (--> (σ (ca_v1 := v_1) ... (ca := (in-hole E (ca_1 : ca_2))) (ca_e1 := e_1) ...)
-                                  (σ (ca_v1 := v_1) ... (ca := (in-hole E (unpack (ca_1 : ca_2) ca))) (ca_e1 := e_1) ...)
-                                  unpack)))
+    (--> (σ (ca_v1 := v_1) ... (ca := (in-hole E (ca_1 : ca_2))) (ca_e1 := e_1) ...)
+         (σ (ca_v1 := v_1) ... (ca := (in-hole E (unpack (ca_1 : ca_2) ca))) (ca_e1 := e_1) ...)
+         unpack)))
 
 
 (define-metafunction λ-calc
@@ -103,28 +103,10 @@
   [(free-vars-in (IF e_1 e_2 e_3)) ,(append (term (free-vars-in e_1))
                                             (term (free-vars-in e_2))
                                             (term (free-vars-in e_3)))]
-
   [(free-vars-in _) ()])
 
 
-(define-extended-language lift-λ-calc λ-calc
-  (l ::=
-     v
-     x
-     (l + l)
-     (l = l)
-     (l l ...)
-     (ca : ca))
-
-  (L :: =
-     hole
-     ((ca <- x) ... ((ca : ca) := (e ... E l ...))))
-
-  (S ::= (σ (or (ca := e) L) ...)))
-
-
-;; Enumerate all cell addresses in the cell array.
-(define-metafunction lift-λ-calc
+(define-metafunction λ-calc
   enumerate : (ca : ca) -> (ca ...)
   [(enumerate ((rc i_r1 i_c1) : (rc i_r2 i_c2)))
    ,(flatten
