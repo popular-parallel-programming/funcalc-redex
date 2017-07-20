@@ -13,16 +13,9 @@
      (ca : ca) ;  [[v ...] ...] via unpack
      (e e ...)
      (MAP e ...))
-
   (f ::= (λ (x ...) e))
-
-  (v ::=
-     ....
-     [[v ... ] ...]
-     f)
-
+  (v ::= .... [[v ... ] ...] f)
   (x ::= variable-not-otherwise-mentioned)
-
   #:binding-forms
   (λ (x ...) e #:refers-to (shadow x ...)))
 
@@ -93,36 +86,3 @@
     (--> (σ (ca_v1 := v_1) ... (ca := (in-hole E (ca_1 : ca_2))) (ca_e1 := e_1) ...)
          (σ (ca_v1 := v_1) ... (ca := (in-hole E (unpack (ca_1 : ca_2) ca))) (ca_e1 := e_1) ...)
          unpack)))
-
-
-(define-metafunction λ-calc
-  free-vars-in : e -> (x ...)
-  [(free-vars-in x)                x]
-  [(free-vars-in (e_1 + e_2))      ,(append (term (free-vars-in e_1)) (term (free-vars-in e_2)))]
-  [(free-vars-in (e_1 = e_2))      ,(append (term (free-vars-in e_1)) (term (free-vars-in e_2)))]
-  [(free-vars-in (e_1 e_2 ...))    ,(append (term (free-vars-in e_1)) (term (free-vars-in (e_2 ...))))]
-  [(free-vars-in (λ (x ...) e_1))  ,(remove* (term (x ...)) (term (free-vars-in e_1)))]
-  [(free-vars-in (IF e_1 e_2 e_3)) ,(append (term (free-vars-in e_1))
-                                            (term (free-vars-in e_2))
-                                            (term (free-vars-in e_3)))]
-  [(free-vars-in _) ()])
-
-
-(define-metafunction λ-calc
-  enumerate : (ca : ca) -> (ca ...)
-  [(enumerate ((rc i_r1 i_c1) : (rc i_r2 i_c2)))
-   ,(flatten
-     (build-list
-      (- (term i_r2) (term i_r1))
-      (λ (r) (build-list
-              (- (term i_c2) (term i_c1))
-              (λ (c)
-                (term (rc ,(+ (term i_r1) r) ,(+ (term i_c1) c))))))))])
-
-
-(define (in?/racket ca cas)
-  (case cas
-    ['()  #f]
-    [else (if (member (term (lookup ca ,(first cas))) cas)
-           #t
-           (in?/racket ca (rest cas)))]))
