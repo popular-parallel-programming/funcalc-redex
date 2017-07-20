@@ -62,4 +62,3 @@
 (test-->> lift s2 (term (lft ((rc 1 1) : (rc 2 2)) := (MAP (λ (x x1) (x + x1))
                                                            ((rc 3 3) : (rc 4 4))
                                                            ((rc 3 5) : (rc 4 5))))))
-(traces lift s2)
