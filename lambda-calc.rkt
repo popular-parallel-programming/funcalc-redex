@@ -14,8 +14,8 @@
      (e e ...)
      (MAP f e ...)
      (SCAN f e ...)
-     (HUNFOLD e e)
-     (VUNFOLD e e))
+     (HREP e e)
+     (VREP e e))
   (f ::= (λ (x ...) e))
   (v ::= .... [[v ... ] ...] f)
   (x ::= variable-not-otherwise-mentioned)
@@ -31,10 +31,10 @@
      [[v ...] ... [v ... E e ...] [e ...] ...] ; For evaluating arrays.
      (MAP v ... E e ...)
      (SCAN v ... E e ...)
-     (HUNFOLD E e)
-     (HUNFOLD e E)
-     (VUNDOLD E e)
-     (VUNFOLD e E)))
+     (HREP E e)
+     (HREP v E)
+     (VREP E e)
+     (VREP v E)))
 
 
 (define-metafunction λ-calc
@@ -105,12 +105,12 @@
          (in-hole S [[(f v_1 v_2) ...] ...])
          map2)
 
-    (--> (in-hole S (HUNFOLD [[v ...]] n))
-         (in-hole S [generate-term [v ...] n])
+    (--> (in-hole S (HREP  [[v ...] ...] n))
+         (in-hole S [generate-term [v ...] ... n])
          hunfold)
 
-    (--> (in-hole S (VUNFOLD [[v] ...] n))
-         (in-hole S [[generate-term v n] ...])
+    (--> (in-hole S (VREP [[v ...] ...] n))
+         (in-hole S [[generate-term v ... n] ...])
          vunfold)
 
     (--> (σ (ca_v1 := v_1) ... (ca := (in-hole E (ca_1 : ca_2))) (ca_e1 := e_1) ...)
