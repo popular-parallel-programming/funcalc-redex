@@ -159,3 +159,13 @@
 
 (define s3 (term (γ () () (((rc 2 2) : (rc 10 10)) := (((rc [-1] [-1]) + (rc [-1] [0])) + (rc [0] [-1]))))))
 (test-equal (redex-match? λ-calc-L c s3) #t)
+(test-->> lift s3 (term (lft
+                        ((rc 2 2) : (rc 10 10))
+                        :=
+                        (PREFIX
+                         (λ (x2 x x1) ((x + x1) + x2))
+                         ((rc 1 1) : (rc 10 1))
+                         ((rc 1 1) : (rc 1 10))))))
+
+;; (require pict)
+;; (send (pict->bitmap (render-reduction-relation lift)) save-file "/tmp/lift-rules.png" 'png 100)
