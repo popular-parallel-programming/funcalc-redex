@@ -85,17 +85,6 @@
   [(COLUMNS _)                            (err "#ArgType")])
 
 
-;; (define-metafunction λ-calc
-;;   HUNFOLD : v n -> v
-;;   [(HUNFOLD [[v] ...] n) [[generate-term v n] ...]]
-;;   [(HUNFOLD _ _)         (err "#ArgType")])
-
-
-;; (define-metafunction λ-calc
-;;   VUNFOLD : v v -> v
-;;   [(VUNFOLD [[v ...]]) [generate-term [v ...] n]]
-;;   [(VUNFOLD _ _)       (err "#ArgType")])
-
 (define ->λ-calc
   (extend-reduction-relation ->mini-calc λ-calc-S
     #:domain s
