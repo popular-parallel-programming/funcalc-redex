@@ -13,7 +13,9 @@
      (l = l)
      (IF l l l)
      (ca : ca)
-     (MAP f l ...))
+     (MAP f l ...)
+     (HUNFOLD l l)
+     (VUNFOLD l l))
 
   (L ::=
      hole
@@ -30,6 +32,13 @@
      (lft (ca : ca) := l))) ; Lifted result
 
 
+(define-metafunction λ-calc-L
+  extd : e e -> e
+  [(extd e_1 e_2) (HUNFOLD e_1 (COLUMNS e_2)) (side-condition (eq? 1 (term (COLUMNS e_1))))]
+  [(extd e_1 e_2) (VUNFOLD e_1 (ROWS e_2))    (side-condition (eq? 1 (term (ROWS e_1))))]
+  [(extd e_1 _)   e_1])
+
+
 (define lift
   (reduction-relation λ-calc-L
     #:domain c
@@ -44,7 +53,7 @@
          subst-intrans)
 
     (--> (γ ((ca x) ...) ((ca_1 : ca_2) := l))
-         (lft (ca_1 : ca_2) := (MAP (λ (x ...) l) (ca_ul : ca_lr) ...)) ; Can be plugged into a σ.
+         (lft (ca_1 : ca_2) := (MAP (λ (x ...) l) (extd (ca_ul : ca_lr) (ca_1 : ca_2)) ...)) ; Can be plugged into a σ.
          (where (ca_ul ...) ((lookup ca ca_1) ...))
          (where (ca_lr ...) ((lookup ca ca_2) ...))
          synth)))

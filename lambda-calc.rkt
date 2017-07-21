@@ -12,7 +12,10 @@
      x
      (ca : ca) ;  [[v ...] ...] via unpack
      (e e ...)
-     (MAP e ...))
+     (MAP f e ...)
+     (SCAN f e ...)
+     (HUNFOLD e e)
+     (VUNFOLD e e))
   (f ::= (λ (x ...) e))
   (v ::= .... [[v ... ] ...] f)
   (x ::= variable-not-otherwise-mentioned)
@@ -26,7 +29,12 @@
      ....
      (f ... E e ...)
      [[v ...] ... [v ... E e ...] [e ...] ...] ; For evaluating arrays.
-     (MAP v ... E e ...)))
+     (MAP v ... E e ...)
+     (SCAN v ... E e ...)
+     (HUNFOLD E e)
+     (HUNFOLD e E)
+     (VUNDOLD E e)
+     (VUNFOLD e E)))
 
 
 (define-metafunction λ-calc
@@ -63,6 +71,31 @@
    (substitute/rec (substitute e x_1 v_1) (x_2 ...) (v_2 ...))])
 
 
+(define-metafunction λ-calc
+  ROWS : e -> v
+  [(ROWS [[v ...] ...])               ,(length (term [[v ...] ...]))]
+  [(ROWS ((rc i_r1 _) : (rc i_r2 _))) ,(add1 (- (term i_r2) (term i_r1)))]
+  [(ROWS _)                            (err "#ArgType")])
+
+
+(define-metafunction λ-calc
+  COLUMNS : e -> v
+  [(COLUMNS [[v ...] ...])               ,(length (first (term [[v ...] ...])))]
+  [(COLUMNS ((rc _ i_c1) : (rc _ i_c2))) ,(add1 (- (term i_c2) (term i_c1)))]
+  [(COLUMNS _)                            (err "#ArgType")])
+
+
+;; (define-metafunction λ-calc
+;;   HUNFOLD : v n -> v
+;;   [(HUNFOLD [[v] ...] n) [[generate-term v n] ...]]
+;;   [(HUNFOLD _ _)         (err "#ArgType")])
+
+
+;; (define-metafunction λ-calc
+;;   VUNFOLD : v v -> v
+;;   [(VUNFOLD [[v ...]]) [generate-term [v ...] n]]
+;;   [(VUNFOLD _ _)       (err "#ArgType")])
+
 (define ->λ-calc
   (extend-reduction-relation ->mini-calc λ-calc-S
     #:domain s
@@ -82,6 +115,14 @@
     (--> (in-hole S (MAP f [[v_1 ...] ...] [[v_2 ...] ...]))
          (in-hole S [[(f v_1 v_2) ...] ...])
          map2)
+
+    (--> (in-hole S (HUNFOLD [[v ...]] n))
+         (in-hole S [generate-term [v ...] n])
+         hunfold)
+
+    (--> (in-hole S (VUNFOLD [[v] ...] n))
+         (in-hole S [[generate-term v n] ...])
+         vunfold)
 
     (--> (σ (ca_v1 := v_1) ... (ca := (in-hole E (ca_1 : ca_2))) (ca_e1 := e_1) ...)
          (σ (ca_v1 := v_1) ... (ca := (in-hole E (unpack (ca_1 : ca_2) ca))) (ca_e1 := e_1) ...)
