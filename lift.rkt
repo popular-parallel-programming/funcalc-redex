@@ -16,7 +16,7 @@
      (MAP f l ...)
      (HREP l l)
      (VREP l l)
-     (SCAN f l ...))
+     (PREFIX f l ...))
 
   (L ::=
      hole

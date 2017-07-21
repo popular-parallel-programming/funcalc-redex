@@ -13,7 +13,7 @@
      (ca : ca) ;  [[v ...] ...] via unpack
      (e e ...)
      (MAP f e ...)
-     (SCAN f e ...)
+     (PREFIX f e ...)
      (HREP e e)
      (VREP e e))
   (f ::= (λ (x ...) e))
@@ -30,7 +30,7 @@
      (f ... E e ...)
      [[v ...] ... [v ... E e ...] [e ...] ...] ; For evaluating arrays.
      (MAP v ... E e ...)
-     (SCAN v ... E e ...)
+     (PREFIX v ... E e ...)
      (HREP E e)
      (HREP v E)
      (VREP E e)
