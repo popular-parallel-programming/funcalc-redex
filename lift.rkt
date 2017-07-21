@@ -39,6 +39,21 @@
   [(extd e_1 _)   e_1])
 
 
+(define-metafunction λ-calc-L
+  enumerate : ((rc i i) : (rc i i)) -> (ca ...) ; Can only be called with absolute ranges.
+  [(enumerate ((rc i_r1 i_c1) : (rc i_r2 i_c2)))
+   ,(let [(rows (add1 (- (term i_r2) (term i_r1))))
+          (cols (add1 (- (term i_c2) (term i_c1))))]
+      (foldl append '()
+             (build-list rows
+                         (λ (r) (build-list cols
+                                            (λ (c) (term (rc ,(add1 r) ,(add1 c)))))))))])
+
+
+(define (intersect?/racket xs ys)
+  (ormap (λ (x) (member x ys)) xs))
+
+
 (define lift
   (reduction-relation λ-calc-L
     #:domain c
@@ -50,6 +65,8 @@
     (~> (γ ((ca_s x_s) ...)        ((ca_1 : ca_2) := (in-hole L ca)))
         (γ ((ca_s x_s) ... (ca x)) ((ca_1 : ca_2) := (in-hole L x)))
         (fresh x)
+        (where (ca_r ...) (enumerate (ca_1 : ca_2)))
+        (side-condition (not (intersect?/racket (term ((lookup ca ca_r) ...)) (term (ca_r ...)))))
         (side-condition (not (member (term ca) (term (ca_s ...)))))
         subst-intrans)
 
