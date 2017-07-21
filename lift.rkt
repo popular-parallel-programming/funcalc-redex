@@ -42,21 +42,22 @@
 (define lift
   (reduction-relation λ-calc-L
     #:domain c
-    (--> (γ ((ca_1 x_1) ... (ca x) (ca_2 x_2) ...) ((ca_3 : ca_4) := (in-hole L ca)))
-         (γ ((ca_1 x_1) ... (ca x) (ca_2 x_2) ...) ((ca_3 : ca_4) := (in-hole L x)))
-         subst-∃)
+    #:arrow ~>
+    (~> (γ ((ca_1 x_1) ... (ca x) (ca_2 x_2) ...) ((ca_3 : ca_4) := (in-hole L ca)))
+        (γ ((ca_1 x_1) ... (ca x) (ca_2 x_2) ...) ((ca_3 : ca_4) := (in-hole L x)))
+        subst-∃)
 
-    (--> (γ ((ca_s x_s) ...)        ((ca_1 : ca_2) := (in-hole L ca)))
-         (γ ((ca_s x_s) ... (ca x)) ((ca_1 : ca_2) := (in-hole L x)))
-         (fresh x)
-         (side-condition (not (member (term ca) (term (ca_s ...)))))
-         subst-intrans)
+    (~> (γ ((ca_s x_s) ...)        ((ca_1 : ca_2) := (in-hole L ca)))
+        (γ ((ca_s x_s) ... (ca x)) ((ca_1 : ca_2) := (in-hole L x)))
+        (fresh x)
+        (side-condition (not (member (term ca) (term (ca_s ...)))))
+        subst-intrans)
 
-    (--> (γ ((ca x) ...) ((ca_1 : ca_2) := l))
-         (lft (ca_1 : ca_2) := (MAP (λ (x ...) l) (extd (ca_ul : ca_lr) (ca_1 : ca_2)) ...)) ; Can be plugged into a σ.
-         (where (ca_ul ...) ((lookup ca ca_1) ...))
-         (where (ca_lr ...) ((lookup ca ca_2) ...))
-         synth)))
+    (~> (γ ((ca x) ...) ((ca_1 : ca_2) := l))
+        (lft (ca_1 : ca_2) := (MAP (λ (x ...) l) (extd (ca_ul : ca_lr) (ca_1 : ca_2)) ...)) ; Can be plugged into a σ.
+        (where (ca_ul ...) ((lookup ca ca_1) ...))
+        (where (ca_lr ...) ((lookup ca ca_2) ...))
+        synth)))
 
 
 (define s1 (term (γ () (((rc 1 1) : (rc 2 2)) := ((rc [2] [2]) + (rc [2] [2]))))))
