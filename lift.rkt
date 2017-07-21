@@ -15,7 +15,8 @@
      (ca : ca)
      (MAP f l ...)
      (HREP l l)
-     (VREP l l))
+     (VREP l l)
+     (SCAN f l ...))
 
   (L ::=
      hole
@@ -28,7 +29,7 @@
      (IF l l L))
 
   (c ::=
-     (γ ((ca x) ...) ((ca : ca) := e)) ; A lifting in progress.
+     (γ ((ca x) ...) ((ca x) ...) ((ca : ca) := e)) ; A lifting in progress.
      (lft (ca : ca) := l))) ; Lifted result
 
 
@@ -58,30 +59,48 @@
   (reduction-relation λ-calc-L
     #:domain c
     #:arrow ~>
-    (~> (γ ((ca_1 x_1) ... (ca x) (ca_2 x_2) ...) ((ca_3 : ca_4) := (in-hole L ca)))
-        (γ ((ca_1 x_1) ... (ca x) (ca_2 x_2) ...) ((ca_3 : ca_4) := (in-hole L x)))
-        subst-∃)
+    ; subst-intrans-∃: An intransitive substitution exists already.
+    (~> (γ ((ca_1 x_1) ...) ((ca_2 x_2) ... (ca x) (ca_3 x_4) ...) ((ca_ul : ca_lr) := (in-hole L ca)))
+        (γ ((ca_1 x_1) ...) ((ca_2 x_2) ... (ca x) (ca_3 x_4) ...) ((ca_ul : ca_lr) := (in-hole L x)))
+        subst-intrans-∃)
 
-    (~> (γ ((ca_s x_s) ...)        ((ca_1 : ca_2) := (in-hole L ca)))
-        (γ ((ca_s x_s) ... (ca x)) ((ca_1 : ca_2) := (in-hole L x)))
+    ; subst-trans-∃: A transitive substitution exists already.
+    (~> (γ ((ca_1 x_1) ... (ca x) (ca_2 x_2) ...) ((ca_3 x_4) ...) ((ca_ul : ca_lr) := (in-hole L ca)))
+        (γ ((ca_1 x_1) ... (ca x) (ca_2 x_2) ...) ((ca_3 x_4) ...) ((ca_ul : ca_lr) := (in-hole L x)))
+        subst-trans-∃)
+
+    ; subst-intrans: The reference is intransitive and there does not already exist a substitution.
+    (~> (γ ((ca_1 x_1) ...) ((ca_2 x_2) ...)        ((ca_ul : ca_lr) := (in-hole L ca)))
+        (γ ((ca_1 x_1) ...) ((ca_2 x_2) ... (ca x)) ((ca_ul : ca_lr) := (in-hole L x)))
         (fresh x)
-        (where (ca_r ...) (enumerate (ca_1 : ca_2)))
+        (where (ca_r ...) (enumerate (ca_ul : ca_lr)))
         (side-condition (not (intersect?/racket (term ((lookup ca ca_r) ...)) (term (ca_r ...)))))
-        (side-condition (not (member (term ca) (term (ca_s ...)))))
+        (side-condition (not (member (term ca) (term (ca_2 ...)))))
         subst-intrans)
 
-    (~> (γ ((ca x) ...) ((ca_1 : ca_2) := l))
-        (lft (ca_1 : ca_2) := (MAP (λ (x ...) l) (extd (ca_ul : ca_lr) (ca_1 : ca_2)) ...)) ; Can be plugged into a σ.
-        (where (ca_ul ...) ((lookup ca ca_1) ...))
-        (where (ca_lr ...) ((lookup ca ca_2) ...))
-        synth)))
+    ; subst-trans: The reference is transitive and there does not already exist a substitution.
+    ;; (~> (γ ((ca_1 x_1) ...) ((ca_2 x_2) ...) ((ca_ul : ca_lr) := (in-hole L ca)))
+    ;;     (γ ((ca_1 x_1) ...) ((ca_2 x_2) ...) ((ca_ul : ca_lr) := (in-hole L x)))
+    ;;     (fresh x)
+    ;;     (where (ca_r ...) (enumerate (ca_ul : ca_lr)))
+    ;;     (side-condition (intersect?/racket (term ((lookup ca ca_r) ...)) (term (ca_r ...))))
+    ;;     (side-condition (not (member (term ca) (term (ca_1 ...)))))
+    ;;     subst-trans)
+
+    (~> (γ ((ca_1 x_1) ...) ((ca_2 x_2) ...) ((ca_ul : ca_lr) := l))
+        (lft (ca_ul : ca_lr) := (MAP (λ (x_2 ...) l) (extd (ca_ul0 : ca_lr0) (ca_ul : ca_lr)) ...))
+        (where (ca_ul0 ...) ((lookup ca_2 ca_ul) ...))
+        (where (ca_lr0 ...) ((lookup ca_2 ca_lr) ...))
+        (side-condition (empty? (term (ca_1 ...))))
+        synth-map)))
 
 
-(define s1 (term (γ () (((rc 1 1) : (rc 2 2)) := ((rc [2] [2]) + (rc [2] [2]))))))
+(define s1 (term (γ () () (((rc 1 1) : (rc 2 2)) := ((rc [2] [2]) + (rc [2] [2]))))))
 (test-equal (redex-match? λ-calc-L c s1) #t)
 (test-->> lift s1 (term (lft ((rc 1 1) : (rc 2 2)) := (MAP (λ (x) (x + x)) ((rc 3 3) : (rc 4 4))))))
 
-(define s2 (term (γ () (((rc 1 1) : (rc 2 2)) := ((rc [2] [2]) + (rc [2] 5))))))
+
+(define s2 (term (γ () () (((rc 1 1) : (rc 2 2)) := ((rc [2] [2]) + (rc [2] 5))))))
 (test-equal (redex-match? λ-calc-L c s1) #t)
 (test-->> lift s2 (term (lft ((rc 1 1) : (rc 2 2)) := (MAP (λ (x x1) (x + x1))
                                                            ((rc 3 3) : (rc 4 4))

@@ -105,12 +105,16 @@
          (in-hole S [[(f v_1 v_2) ...] ...])
          map2)
 
+    (--> (in-hole S (SCAN f [[v_c] ...] [[v_r ...]] [[v ...] ...]))
+         (in-hole S ???)
+         scan)
+
     (--> (in-hole S (HREP  [[v ...] ...] n))
-         (in-hole S [generate-term [v ...] ... n])
+         (in-hole S [generate-term [v ...] ... n]) ; FIXME: Probably broken.
          hunfold)
 
     (--> (in-hole S (VREP [[v ...] ...] n))
-         (in-hole S [[generate-term v ... n] ...])
+         (in-hole S [[generate-term v ... n] ...]) ; FIXME: Probably broken.
          vunfold)
 
     (--> (σ (ca_v1 := v_1) ... (ca := (in-hole E (ca_1 : ca_2))) (ca_e1 := e_1) ...)
