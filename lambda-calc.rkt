@@ -37,22 +37,11 @@
      (VREP v E)))
 
 
-(define-metafunction λ-calc
-  rows : v -> i
-  [(rows [[v ...] ...]) ,(length (term [[v ...] ...]))]
-  [(rows _) (err "#ArgType")])
-
-
-(define-metafunction λ-calc
-  cols : v -> i
-  [(cols [[v_1 ...] ... [v_2 ...] [v_3 ...] ...]) ,(length (term [v_2 ...]))]
-  [(cols _) (err "#ArgType")])
-
-
 (define (unpack/racket r_min r_max c_min c_max)
   (term ,(for/list [(r (in-range r_min (add1 r_max)))]
            (term ,(for/list [(c (in-range c_min (add1 c_max)))]
                     (term (rc ,r ,c)))))))
+
 
 (define-metafunction λ-calc-S
   unpack : (ca : ca) ca -> e
