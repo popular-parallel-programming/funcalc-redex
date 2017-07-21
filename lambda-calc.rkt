@@ -92,9 +92,9 @@
          (in-hole S (substitute/rec e (x ...) (v ...)))
          app)
 
-    (--> (in-hole S ((λ (x_1 ..._1 x_2 x_3 ...) e) v ..._1))
-         (in-hole S ((λ (x_2 x_3 ...) (substitute/rec e (x_1 ...) (v ...)))))
-         app-part)
+    ;; (--> (in-hole S ((λ (x_1 ..._1 x_2 x_3 ...) e) v ..._1))
+    ;;      (in-hole S ((λ (x_2 x_3 ...) (substitute/rec e (x_1 ...) (v ...)))))
+    ;;      app-part)
 
     ;; FIXME: These are fixed-arity map. How can I generalize this?
     (--> (in-hole S (MAP f [[v_1 ...] ...]))
