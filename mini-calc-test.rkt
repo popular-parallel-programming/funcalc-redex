@@ -1,7 +1,7 @@
 #lang racket
 
-(require redex)
-(require "funcalc.rkt")
+(require redex
+         "mini-calc.rkt")
 
 
 ;; mini-calc tests
