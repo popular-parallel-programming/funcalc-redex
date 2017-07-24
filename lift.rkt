@@ -169,3 +169,4 @@
 
 ;; (require pict)
 ;; (send (pict->bitmap (render-reduction-relation lift)) save-file "/tmp/lift-rules.png" 'png 100)
+;; (scale (render-reduction-relation lift) 2)
