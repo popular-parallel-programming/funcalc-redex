@@ -29,8 +29,8 @@
      (IF l l L))
 
   (c ::=
-     (γ ((ca x) ...) ((ca x) ...) ((ca : ca) := e)) ; A lifting in progress.
-     (lft (ca : ca) := l))) ; Lifted result
+     (more ((ca x) ...) ((ca x) ...) ((ca : ca) := e)) ; A lifting in progress.
+     (done (ca : ca) := l))) ; Lifted result
 
 
 (define-metafunction λ-calc-L
@@ -92,18 +92,18 @@
     #:domain c
     #:arrow ~>
     ; subst-intrans-∃: An intransitive substitution exists already.
-    (~> (γ ((ca_1 x_1) ...) ((ca_2 x_2) ... (ca x) (ca_3 x_4) ...) ((ca_ul : ca_lr) := (in-hole L ca)))
-        (γ ((ca_1 x_1) ...) ((ca_2 x_2) ... (ca x) (ca_3 x_4) ...) ((ca_ul : ca_lr) := (in-hole L x)))
+    (~> (more ((ca_1 x_1) ...) ((ca_2 x_2) ... (ca x) (ca_3 x_4) ...) ((ca_ul : ca_lr) := (in-hole L ca)))
+        (more ((ca_1 x_1) ...) ((ca_2 x_2) ... (ca x) (ca_3 x_4) ...) ((ca_ul : ca_lr) := (in-hole L x)))
         subst-intrans-∃)
 
     ; subst-trans-∃: A transitive substitution exists already.
-    (~> (γ ((ca_1 x_1) ... (ca x) (ca_2 x_2) ...) ((ca_3 x_4) ...) ((ca_ul : ca_lr) := (in-hole L ca)))
-        (γ ((ca_1 x_1) ... (ca x) (ca_2 x_2) ...) ((ca_3 x_4) ...) ((ca_ul : ca_lr) := (in-hole L x)))
+    (~> (more ((ca_1 x_1) ... (ca x) (ca_2 x_2) ...) ((ca_3 x_4) ...) ((ca_ul : ca_lr) := (in-hole L ca)))
+        (more ((ca_1 x_1) ... (ca x) (ca_2 x_2) ...) ((ca_3 x_4) ...) ((ca_ul : ca_lr) := (in-hole L x)))
         subst-trans-∃)
 
     ; subst-intrans: The reference is intransitive and there does not already exist a substitution.
-    (~> (γ ((ca_1 x_1) ...) ((ca_2 x_2) ...)        ((ca_ul : ca_lr) := (in-hole L ca)))
-        (γ ((ca_1 x_1) ...) ((ca_2 x_2) ... (ca x)) ((ca_ul : ca_lr) := (in-hole L x)))
+    (~> (more ((ca_1 x_1) ...) ((ca_2 x_2) ...)        ((ca_ul : ca_lr) := (in-hole L ca)))
+        (more ((ca_1 x_1) ...) ((ca_2 x_2) ... (ca x)) ((ca_ul : ca_lr) := (in-hole L x)))
         (fresh x)
         (where (ca_r ...) (enumerate (ca_ul : ca_lr)))
         (side-condition (not (intersect?/racket (term ((lookup ca ca_r) ...)) (term (ca_r ...)))))
@@ -111,8 +111,8 @@
         subst-intrans)
 
     ; subst-trans: The reference is transitive and there does not already exist a substitution.
-    (~> (γ ((ca_1 x_1) ...)        ((ca_2 x_2) ...) ((ca_ul : ca_lr) := (in-hole L ca)))
-        (γ ((ca_1 x_1) ... (ca x)) ((ca_2 x_2) ...) ((ca_ul : ca_lr) := (in-hole L x)))
+    (~> (more ((ca_1 x_1) ...)        ((ca_2 x_2) ...) ((ca_ul : ca_lr) := (in-hole L ca)))
+        (more ((ca_1 x_1) ... (ca x)) ((ca_2 x_2) ...) ((ca_ul : ca_lr) := (in-hole L x)))
         (fresh x)
         (where (ca_r ...) (enumerate (ca_ul : ca_lr)))
         (side-condition (intersect?/racket (term ((lookup ca ca_r) ...)) (term (ca_r ...))))
@@ -120,16 +120,16 @@
         subst-trans)
 
     ; synth-map: The expression has been lifted to a λ-body and there are no transitive references.
-    (~> (γ ((ca_t x_t) ...) ((ca_i x_i) ...) ((ca_ul : ca_lr) := l))
-        (lft (ca_ul : ca_lr) := (MAP (λ (x_i ...) l) (extd (ca_ul0 : ca_lr0) (ca_ul : ca_lr)) ...))
+    (~> (more ((ca_t x_t) ...) ((ca_i x_i) ...) ((ca_ul : ca_lr) := l))
+        (done (ca_ul : ca_lr) := (MAP (λ (x_i ...) l) (extd (ca_ul0 : ca_lr0) (ca_ul : ca_lr)) ...))
         (where (ca_ul0 ...) ((lookup ca_i ca_ul) ...))
         (where (ca_lr0 ...) ((lookup ca_i ca_lr) ...))
         (side-condition (empty? (term (ca_t ...))))
         synth-map)
 
     ; synth-prefix: The expression has been lifted to a λ-body and there are transitive references.
-    (~> (γ ((ca_t x_t) ...) ((ca_i x_i) ...) ((ca_ul : ca_lr) := l))
-        (lft (ca_ul : ca_lr) := (PREFIX (λ (x_t1 x_t2 x_t3 x_i ...) l)
+    (~> (more ((ca_t x_t) ...) ((ca_i x_i) ...) ((ca_ul : ca_lr) := l))
+        (done (ca_ul : ca_lr) := (PREFIX (λ (x_t1 x_t2 x_t3 x_i ...) l)
                                         (ca_s : ca_c)
                                         (ca_s : ca_r)
                                         (extd (ca_ul0 : ca_lr0) (ca_ul : ca_lr)) ...))
@@ -146,20 +146,20 @@
         synth-prefix)))
 
 
-(define s1 (term (γ () () (((rc 1 1) : (rc 2 2)) := ((rc [2] [2]) + (rc [2] [2]))))))
+(define s1 (term (more () () (((rc 1 1) : (rc 2 2)) := ((rc [2] [2]) + (rc [2] [2]))))))
 (test-equal (redex-match? λ-calc-L c s1) #t)
-(test-->> lift s1 (term (lft ((rc 1 1) : (rc 2 2)) := (MAP (λ (x) (x + x)) ((rc 3 3) : (rc 4 4))))))
+(test-->> lift s1 (term (done ((rc 1 1) : (rc 2 2)) := (MAP (λ (x) (x + x)) ((rc 3 3) : (rc 4 4))))))
 
 
-(define s2 (term (γ () () (((rc 1 1) : (rc 2 2)) := ((rc [2] [2]) + (rc [2] 5))))))
+(define s2 (term (more () () (((rc 1 1) : (rc 2 2)) := ((rc [2] [2]) + (rc [2] 5))))))
 (test-equal (redex-match? λ-calc-L c s2) #t)
-(test-->> lift s2 (term (lft ((rc 1 1) : (rc 2 2)) := (MAP (λ (x x1) (x + x1))
+(test-->> lift s2 (term (done ((rc 1 1) : (rc 2 2)) := (MAP (λ (x x1) (x + x1))
                                                            ((rc 3 3) : (rc 4 4))
                                                            (HREP ((rc 3 5) : (rc 4 5)) 2)))))
 
-(define s3 (term (γ () () (((rc 2 2) : (rc 10 10)) := (((rc [-1] [-1]) + (rc [-1] [0])) + (rc [0] [-1]))))))
+(define s3 (term (more () () (((rc 2 2) : (rc 10 10)) := (((rc [-1] [-1]) + (rc [-1] [0])) + (rc [0] [-1]))))))
 (test-equal (redex-match? λ-calc-L c s3) #t)
-(test-->> lift s3 (term (lft
+(test-->> lift s3 (term (done
                         ((rc 2 2) : (rc 10 10))
                         :=
                         (PREFIX
