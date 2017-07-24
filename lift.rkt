@@ -57,9 +57,9 @@
 
 (define-metafunction λ-calc-L
   ω : (rc [i] [i]) -> i
-  [(ω (rc  [0] [-1])) 1]
-  [(ω (rc [-1] [-1])) 2]
-  [(ω (rc [-1]  [0])) 3])
+  [(ω (rc [0] [_])) 1]
+  [(ω (rc [_] [0])) 3]
+  [(ω (rc [_] [_])) 2])
 
 
 (define (sort-trans/racket xs)
