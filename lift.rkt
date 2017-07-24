@@ -117,6 +117,7 @@
         (where (ca_r ...) (enumerate (ca_ul : ca_lr)))
         (side-condition (intersect?/racket (term ((lookup ca ca_r) ...)) (term (ca_r ...))))
         (side-condition (not (member (term ca) (term (ca_1 ...)))))
+        (side-condition (= 1 (term (stride ca))))
         subst-trans)
 
     ; synth-map: The expression has been lifted to a λ-body and there are no transitive references.
