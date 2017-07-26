@@ -30,7 +30,7 @@
 
   (c ::=
      (more ((ca x) ...) ((ca x) ...) ((ca : ca) := e)) ; A lifting in progress.
-     (done (ca : ca) := l))) ; Lifted result
+     (done (ca : ca) := e))) ; Lifted result
 
 
 (define-metafunction λ-calc-L
@@ -131,17 +131,22 @@
     ; synth-prefix: The expression has been lifted to a λ-body and there are transitive references.
     (~> (more ((ca_t x_t) ...) ((ca_i x_i) ...) ((ca_ul : ca_lr) := l))
         (done (ca_ul : ca_lr) := (PREFIX (λ (x_t1 x_t2 x_t3 x_i ...) l)
-                                        (ca_s : ca_c)
-                                        (ca_s : ca_r)
-                                        (extd (ca_ul0 : ca_lr0) (ca_ul : ca_lr)) ...))
+                                         (ca_c0 : ca_c1)
+                                         ca_s
+                                         (ca_r0 : ca_r1)
+                                         (extd (ca_ul0 : ca_lr0) (ca_ul : ca_lr)) ...))
         (where (ca_ul0 ...) ((lookup ca_i ca_ul) ...))
         (where (ca_lr0 ...) ((lookup ca_i ca_lr) ...))
         (where ((ca_t1 x_t1) (ca_t2 x_t2) (ca_t3 x_t3)) (sort&fill ((ca_t x_t) ...))) ; Make sure this holds!
 
         ; Construct initial row and column addres
         (where ca_s (lookup ca_t2 ca_ul))
-        (where ca_c (rc (row ca_lr) (column ca_s)))
-        (where ca_r (rc (row ca_s)  (column ca_lr)))
+
+        (where ca_c0 (lookup ca_t1 ca_ul))
+        (where ca_r0 (lookup ca_t3 ca_ul))
+
+        (where ca_c1 (rc (row ca_lr) (column ca_c0)))
+        (where ca_r1 (rc (row ca_r0) (column ca_lr)))
 
         (side-condition (not (empty? (term (ca_t ...)))))
         synth-prefix)))
@@ -165,8 +170,9 @@
                         :=
                         (PREFIX
                          (λ (x2 x x1) ((x + x1) + x2))
-                         ((rc 1 1) : (rc 10 1))
-                         ((rc 1 1) : (rc 1 10))))))
+                         ((rc 2 1) : (rc 10 1))
+                         (rc 1 1)
+                         ((rc 1 2) : (rc 1 10))))))
 
 ;; (require pict)
 ;; (send (pict->bitmap (render-reduction-relation lift)) save-file "/tmp/lift-rules.png" 'png 100)
