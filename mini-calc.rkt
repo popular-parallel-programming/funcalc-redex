@@ -21,7 +21,8 @@
      ca
      (e + e)
      (e = e)
-     (IF e e e))
+     (IF e e e)
+     (SLICE e e e e e)) ; SLICE(ca_1:ca_2, r_0, r_1, c_0, c_1) slices array into smaller sub-array.
   ;; A sheet whose cells reduce from expressions to values.
   (s ::= (σ (ca := e) ...)))
 
