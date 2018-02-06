@@ -19,10 +19,11 @@
   (e ::=
      v
      ca
+     (ca : ca)
      (e + e)
      (e = e)
      (IF e e e)
-     (SLICE e e e e e)) ; SLICE(ca_1:ca_2, r_0, r_1, c_0, c_1) slices array into smaller sub-array.
+     (SUM e ...))
   ;; A sheet whose cells reduce from expressions to values.
   (s ::= (σ (ca := e) ...)))
 
@@ -33,7 +34,8 @@
      (v + E)
      (E = e)
      (v = E)
-     (IF E e e))
+     (IF E e e)
+     (SUM v ... E e ...))
   (S ::= (σ (ca_v := v) ... (ca := E) (ca_e := e) ...)))
 
 
@@ -43,6 +45,17 @@
   [(lookup (rc  i_1  [i_2]) (rc _ i_4))   (rc i_1                        ,(+ (term i_2) (term i_4)))]
   [(lookup (rc [i_1] [i_2]) (rc i_3 i_4)) (rc ,(+ (term i_1) (term i_3)) ,(+ (term i_2) (term i_4)))]
   [(lookup ca _)                          ca])
+
+
+(define-metafunction mini-calc
+  enumerate : ((rc i i) : (rc i i)) -> (ca ...) ; Can only be called with absolute ranges.
+  [(enumerate ((rc i_r1 i_c1) : (rc i_r2 i_c2)))
+   ,(let [(rows (add1 (- (term i_r2) (term i_r1))))
+          (cols (add1 (- (term i_c2) (term i_c1))))]
+      (foldl append '()
+             (build-list rows
+                         (λ (r) (build-list cols
+                                            (λ (c) (term (rc ,(add1 r) ,(add1 c)))))))))])
 
 
 (define ->mini-calc
@@ -66,6 +79,19 @@
         (in-hole S e_1)
         (side-condition (not (zero? (term n))))
         if-ff)
+
+   (--> (σ (ca_1 := v_1) ... (ca := (SUM (ca_ul : ca_lr) e ...)) (ca_2 := e_1) ...)
+        (σ (ca_1 := v_1) ... (ca := (SUM ca_a ... e ...)) (ca_2 := e_1) ...)
+        (where ca_a1 (lookup ca_ul ca))
+        (where ca_a2 (lookup ca_lr ca))
+        (where (ca_a ...) (enumerate (ca_a1 : ca_a2)))
+        sum-expand)
+   (--> (in-hole S (SUM v_1 v_2 v ...))
+        (in-hole S (SUM (v_1 + v_2) v ...))
+        sum-cont)
+   (--> (in-hole S (SUM v))
+        (in-hole S v)
+        sum-ret)
 
    ;; Cell-reference look-up: reference already computed.
    (--> (σ (ca_1 := v_1) ... (ca_a := v) (ca_2 := v_2) ... (ca := (in-hole E ca_r)) (ca_3 := e_3) ...)

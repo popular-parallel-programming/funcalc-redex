@@ -17,7 +17,9 @@
                      ((rc 2 1) := (1 + (rc 1 1))))))
 (define s10 (term (σ ((rc 1 1) := 1) ((rc 1 2) := (1 + (rc [0] [-1])))
                      ((rc 2 1) := (1 + (rc [-1] [0]))))))
-
+(define s11 (term (σ ((rc 1 1) := 1)
+                     ((rc 2 1) := (SUM ((rc [-1] [0]) : (rc [-1] [1])) 1))
+                     ((rc 1 2) := (1 + (rc [0] [-1]))))))
 
 (test-equal (redex-match? mini-calc s s1)  #t)
 (test-equal (redex-match? mini-calc s s2)  #t)
@@ -29,6 +31,7 @@
 (test-equal (redex-match? mini-calc s s8)  #t)
 (test-equal (redex-match? mini-calc s s9)  #t)
 (test-equal (redex-match? mini-calc s s10) #t)
+(test-equal (redex-match? mini-calc s s11) #t)
 
 
 (test-equal (apply-reduction-relation* ->mini-calc s1)
@@ -51,3 +54,7 @@
             '((σ ((rc 1 1) := 1) ((rc 1 2) := 2) ((rc 2 1) := 2))))
 (test-equal (apply-reduction-relation* ->mini-calc s10)
             '((σ ((rc 1 1) := 1) ((rc 1 2) := 2) ((rc 2 1) := 2))))
+(test-equal (apply-reduction-relation* ->mini-calc s11)
+            '((σ ((rc 1 1) := 1) ((rc 1 2) := 2) ((rc 2 1) := 4))))
+
+(traces ->mini-calc s11)
