@@ -8,16 +8,18 @@
 (define-extended-language λ-calc-L λ-calc
   (l ::=
      v
-     x
+     x                      ; Variable names replace relative cell references.
      (l + l)
      (l = l)
      (IF l l l)
-     (ca : ca)
+     (rc i i)               ; Only absolute cell references.
+     ((rc i i) : (rc i i))  ; Only absolute cell ranges.
      (MAP f l ...)
      (HREP l l)
      (VREP l l)
      (PREFIX f l ...)
-     (SLICE l l l l l))
+     (SUM l ...)
+     (SLICE l l l l l))     ; SLICE(arr, r1, c1, r2, c2)
 
   (L ::=
      hole
@@ -27,7 +29,8 @@
      (l = L)
      (IF L e e)
      (IF l L e)
-     (IF l l L))
+     (IF l l L)
+     (SUM l ... L e ...))
 
   (c ::=
      ; A lifting in progress.
@@ -37,7 +40,7 @@
            ((ca : ca) := e))
 
      ; Lifted result
-     (done (ca : ca) := e)))
+     (done (ca : ca) := l)))
 
 
 (define-metafunction λ-calc-L
@@ -152,16 +155,23 @@
     (~> (more ((ca_t x_t) ...)                       ; Transitive
               ((ca_i x_i) ...)                       ; Intransitive
               (x_c x_r)
-              (ca_ul : ca_lr) := (in-hole L (ca_1 : ca_2)))
+              ((ca_ul : ca_lr) := (in-hole L (ca_1 : ca_2))))
 
         (more ((ca_t x_t) ...)                       ; Transitive
               ((ca_i x_i) ...)                       ; Intransitive
               (x_c x_r)
               (ca_ul : ca_lr) := (in-hole L (SLICE (ca_ul1 : ca_lr2)
                                                    x_r
-                                                   (ROWS (ca_1 : ca_2))
                                                    x_c
-                                                   (COLS (ca_1 : ca_2)))))
+                                                   rs
+                                                   cs)))
+
+        ;; (where (ca_a ...) (enumerate ((lookup ca_1 ca_ul) : (lookup ca_2 ca_lr))))
+        ;; (where (ca_r ...) (enumerate (ca_ul : ca_lr)))
+        ;; (side-condition (not (intersect?/racket (term (ca_a ...)) (term (ca_r ...)))))
+
+        (where rs (ROWS    ((lookup ca_1 ca_ul) : (lookup ca_2 ca_ul))))
+        (where cs (COLUMNS ((lookup ca_1 ca_ul) : (lookup ca_2 ca_ul))))
 
         (where ca_ul1 (lookup ca_1 ca_ul)) ; Upper-left of area.
         (where ca_lr2 (lookup ca_2 ca_lr)) ; Lower-right of area.
@@ -207,7 +217,14 @@
         (where ca_r1 (rc (row ca_r0) (column ca_lr)))
 
         (side-condition (not (empty? (term (ca_t ...)))))
-        synth-prefix)))
+        synth-prefix)
+
+    (~> (more () () (c r) ((ca_ul : ca_lr) := l))
+        (done ((ca_ul : ca_lr) := (TABULATE (λ (c r) l) rs cs)))
+
+        (where cs (COLUMNS (ca_ul : ca_lr)))
+        (where rs (ROWS    (ca_ul : ca_lr)))
+        synth-tabulate)))
 
 
 (define s1 (term (more () () (c r) (((rc 1 1) : (rc 2 2)) := ((rc [2] [2]) + (rc [2] [2]))))))
@@ -218,8 +235,8 @@
 (define s2 (term (more () () (c r) (((rc 1 1) : (rc 2 2)) := ((rc [2] [2]) + (rc [2] 5))))))
 (test-equal (redex-match? λ-calc-L c s2) #t)
 (test-->> lift s2 (term (done ((rc 1 1) : (rc 2 2)) := (MAP (λ (c r x x1) (x + x1))
-                                                           ((rc 3 3) : (rc 4 4))
-                                                           (HREP ((rc 3 5) : (rc 4 5)) 2)))))
+                                                            ((rc 3 3) : (rc 4 4))
+                                                            (HREP ((rc 3 5) : (rc 4 5)) 2)))))
 
 (define s3 (term (more () () (c r) (((rc 2 2) : (rc 10 10)) := (((rc [-1] [-1]) + (rc [-1] [0])) + (rc [0] [-1]))))))
 (test-equal (redex-match? λ-calc-L c s3) #t)
@@ -231,6 +248,13 @@
                          ((rc 2 1) : (rc 10 1))
                          (rc 1 1)
                          ((rc 1 2) : (rc 1 10))))))
+
+(define s4 (term (more () () (c r) (((rc 1 3) : (rc 4 4)) := ((r [5] [0]) + (SUM ((rc [0] 1) : (rc [0] 2))))))))
+(test-equal (redex-match? λ-calc-L c s4) #t)
+
+(test--> lift
+         s4
+         (term (done (((rc 1 3) : (rc 4 4)) := (MAP (λ (c r x) (x + (SUM (SLICE ((rc 1 1) : (rc 4 2)) c 2 r 2)))))))))
 
 ;; (require pict)
 ;; (send (pict->bitmap (render-reduction-relation lift)) save-file "/tmp/lift-rules.png" 'png 100)
