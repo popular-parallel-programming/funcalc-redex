@@ -10,12 +10,14 @@
   (e ::=
      ....
      x
-     (ca : ca) ;  [[v ...] ...] via unpack
+     (ca : ca)         ; [[v ...] ...] via unpack
      (e e ...)
-     (MAP f e ...)
-     (PREFIX f e ...)
+     (MAP     f e ...)
+     (PREFIX  f e ...)
+     (TABULATE f e e)  ; TABULATE(fv, r, c)
      (HREP e e)
-     (VREP e e))
+     (VREP e e)
+     (INDEX e e e))    ; INDEX(arr, r, c)
   (f ::= (λ (x ...) e))
   (v ::= .... [[v ... ] ...] f)
   (x ::= variable-not-otherwise-mentioned)
@@ -27,14 +29,15 @@
 (define-extended-language λ-calc-S λ-calc-S0
   (E ::=
      ....
-     (f ... E e ...)
+     (f v ... E e ...)
      [[v ...] ... [v ... E e ...] [e ...] ...] ; For evaluating arrays.
-     (MAP v ... E e ...)
-     (PREFIX v ... E e ...)
-     (HREP E e)
-     (HREP v E)
-     (VREP E e)
-     (VREP v E)))
+     (MAP f v ... E e ...)
+     (PREFIX f v ... E e ...)
+     (TABULATE f E e)
+     (TABULATE f v E)
+     (HREP v ... E e ...)
+     (VREP v ... E e ...)
+     (INDEX v ... E e ...)))
 
 
 (define (unpack/racket r_min r_max c_min c_max)
@@ -85,6 +88,12 @@
     ;;      (in-hole S ((λ (x_2 x_3 ...) (substitute/rec e (x_1 ...) (v ...)))))
     ;;      app-part)
 
+    (--> (in-hole S (INDEX i_r i_c [[v_1 ...] ..._1 [v_2 ..._2 v v_3 ...] [v_4 ...] ...]))
+         (in-hole S v)
+         (side-condition (= (term i_r) (length (term ..._1))))
+         (side-condition (= (term i_c) (length (term ..._2))))
+         index)
+
     ;; FIXME: These are fixed-arity map. How can I generalize this?
     (--> (in-hole S (MAP f [[v_1 ...] ...]))
          (in-hole S [[(f v_1) ...] ...])
@@ -94,16 +103,20 @@
          (in-hole S [[(f v_1 v_2) ...] ...])
          map2)
 
-    (--> (in-hole S (SCAN f [[v_c] ...] [[v_r ...]] [[v ...] ...]))
-         (in-hole S ???)
-         scan)
+    ;; (--> (in-hole S (PREFIX f [[v_c] ...] v_d [[v_r ...]] [[v ...] ...]))
+    ;;      (in-hole S ???)
+    ;;      prefix)
 
-    (--> (in-hole S (HREP  [[v ...] ...] n))
-         (in-hole S [generate-term [v ...] ... n]) ; FIXME: Probably broken.
+    ;; (--> (in-hole S (TABULATE f i_r i_c))
+    ;;      (in-hole S ???)
+    ;;      tabulate)
+
+    (--> (in-hole S (HREP  [[v ...]] n))
+         (in-hole S ???)
          hunfold)
 
-    (--> (in-hole S (VREP [[v ...] ...] n))
-         (in-hole S [[generate-term v ... n] ...]) ; FIXME: Probably broken.
+    (--> (in-hole S (VREP [[v] ...] n))
+         (in-hole S ???)
          vunfold)
 
     (--> (σ (ca_v1 := v_1) ... (ca := (in-hole E (ca_1 : ca_2))) (ca_e1 := e_1) ...)
