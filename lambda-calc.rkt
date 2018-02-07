@@ -17,6 +17,7 @@
      (TABULATE f e e)  ; TABULATE(fv, r, c)
      (HREP e e)
      (VREP e e)
+     (SLICE e e e e e)
      (INDEX e e e))    ; INDEX(arr, r, c)
   (f ::= (λ (x ...) e))
   (v ::= .... [[v ... ] ...] f)
@@ -37,6 +38,7 @@
      (TABULATE f v E)
      (HREP v ... E e ...)
      (VREP v ... E e ...)
+     (SLICE v .. E e ...)
      (INDEX v ... E e ...)))
 
 
