@@ -160,18 +160,15 @@
         (more ((ca_t x_t) ...)                       ; Transitive
               ((ca_i x_i) ...)                       ; Intransitive
               (x_c x_r)
-              (ca_ul : ca_lr) := (in-hole L (SLICE (ca_ul1 : ca_lr2)
-                                                   x_r
-                                                   x_c
-                                                   rs
-                                                   cs)))
+              ((ca_ul : ca_lr) := (in-hole L (SLICE (ca_ul1 : ca_lr2)
+                                                    x_r
+                                                    x_c
+                                                    (ROWS    ((lookup ca_1 ca_ul) : (lookup ca_2 ca_ul)))
+                                                    (COLUMNS ((lookup ca_1 ca_ul) : (lookup ca_2 ca_ul)))))))
 
         ;; (where (ca_a ...) (enumerate ((lookup ca_1 ca_ul) : (lookup ca_2 ca_lr))))
         ;; (where (ca_r ...) (enumerate (ca_ul : ca_lr)))
         ;; (side-condition (not (intersect?/racket (term (ca_a ...)) (term (ca_r ...)))))
-
-        (where rs (ROWS    ((lookup ca_1 ca_ul) : (lookup ca_2 ca_ul))))
-        (where cs (COLUMNS ((lookup ca_1 ca_ul) : (lookup ca_2 ca_ul))))
 
         (where ca_ul1 (lookup ca_1 ca_ul)) ; Upper-left of area.
         (where ca_lr2 (lookup ca_2 ca_lr)) ; Lower-right of area.
@@ -207,7 +204,7 @@
         (where (ca_lr0 ...) ((lookup ca_i ca_lr) ...))
         (where ((ca_t1 x_t1) (ca_t2 x_t2) (ca_t3 x_t3)) (sort&fill ((ca_t x_t) ...))) ; Make sure this holds!
 
-        ; Construct initial row and column addres
+        ; Construct initial row and column address
         (where ca_s (lookup ca_t2 ca_ul))
 
         (where ca_c0 (lookup ca_t1 ca_ul))
@@ -217,14 +214,7 @@
         (where ca_r1 (rc (row ca_r0) (column ca_lr)))
 
         (side-condition (not (empty? (term (ca_t ...)))))
-        synth-prefix)
-
-    (~> (more () () (c r) ((ca_ul : ca_lr) := l))
-        (done ((ca_ul : ca_lr) := (TABULATE (λ (c r) l) rs cs)))
-
-        (where cs (COLUMNS (ca_ul : ca_lr)))
-        (where rs (ROWS    (ca_ul : ca_lr)))
-        synth-tabulate)))
+        synth-prefix)))
 
 
 (define s1 (term (more () () (c r) (((rc 1 1) : (rc 2 2)) := ((rc [2] [2]) + (rc [2] [2]))))))
@@ -249,12 +239,11 @@
                          (rc 1 1)
                          ((rc 1 2) : (rc 1 10))))))
 
-(define s4 (term (more () () (c r) (((rc 1 3) : (rc 4 4)) := ((r [5] [0]) + (SUM ((rc [0] 1) : (rc [0] 2))))))))
+(define s4 (term (more () () (c r) (((rc 1 3) : (rc 4 4)) := (SUM ((rc [0] 1) : (rc [0] 2)))))))
 (test-equal (redex-match? λ-calc-L c s4) #t)
-
-(test--> lift
+(test-->> lift
          s4
-         (term (done (((rc 1 3) : (rc 4 4)) := (MAP (λ (c r x) (x + (SUM (SLICE ((rc 1 1) : (rc 4 2)) c 2 r 2)))))))))
+         (term (done (((rc 1 3) : (rc 4 4)) := (MAP (λ (c r) (SUM (SLICE ((rc 1 1) : (rc 4 2)) c 2 r 2))) 1 2)))))
 
 ;; (require pict)
 ;; (send (pict->bitmap (render-reduction-relation lift)) save-file "/tmp/lift-rules.png" 'png 100)
