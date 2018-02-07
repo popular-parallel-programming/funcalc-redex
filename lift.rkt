@@ -100,7 +100,7 @@
               ((ca_2 x_2) ... (ca x) (ca_3 x_4) ...) ; Intransitive
               (x_c x_r)
               ((ca_ul : ca_lr) := (in-hole L x)))
-        subst-intrans-∃)
+        exist-i)
 
     ; subst-trans-∃: A transitive substitution exists already.
     (~> (more ((ca_1 x_1) ... (ca x) (ca_2 x_2) ...) ; Transitive
@@ -112,7 +112,7 @@
               ((ca_3 x_4) ...)                       ; Intransitive
               (x_c x_r)
               ((ca_ul : ca_lr) := (in-hole L x)))
-        subst-trans-∃)
+        exist-t)
 
     ; subst-intrans: The reference is intransitive and there does not
     ; already exist a substitution.
@@ -130,7 +130,7 @@
         (where (ca_r ...) (enumerate (ca_ul : ca_lr)))
         (side-condition (not (intersect?/racket (term ((lookup ca ca_r) ...)) (term (ca_r ...)))))
         (side-condition (not (member (term ca) (term (ca_2 ...)))))
-        subst-intrans)
+        subst-i)
 
     ; subst-trans: The reference is transitive and there does not
     ; already exist a substitution.
@@ -149,7 +149,7 @@
         (side-condition (intersect?/racket (term ((lookup ca ca_r) ...)) (term (ca_r ...))))
         (side-condition (not (member (term ca) (term (ca_1 ...)))))
         (side-condition (= 1 (term (stride ca))))
-        subst-trans)
+        subst-t)
 
     ; subst-area: Substitute an area by a call to SLICE.
     (~> (more ((ca_t x_t) ...)                       ; Transitive
