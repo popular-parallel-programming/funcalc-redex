@@ -19,7 +19,8 @@
      (VREP l l)
      (PREFIX f l ...)
      (SUM l ...)
-     (SLICE l l l l l))     ; SLICE(arr, r1, c1, r2, c2)
+     (SLICE l l l l l)      ; SLICE(arr, r1, c1, r2, c2)
+     (TABULATE f l l))
 
   (L ::=
      hole
@@ -40,7 +41,7 @@
            ((ca : ca) := e))
 
      ; Lifted result
-     (done (ca : ca) := l)))
+     (done ((ca : ca) := l))))
 
 
 (define-metafunction λ-calc-L
@@ -182,10 +183,12 @@
               (x_c x_r)
               ((ca_ul : ca_lr) := l))
 
-        (done (ca_ul : ca_lr) := (MAP (λ (x_c x_r x_i ...) l) (extd (ca_ul0 : ca_lr0) (ca_ul : ca_lr)) ...))
+        (done ((ca_ul : ca_lr) := (MAP (λ (x_c x_r x_i ...) l) (extd (ca_ul0 : ca_lr0) (ca_ul : ca_lr)) ...)))
 
         (where (ca_ul0 ...) ((lookup ca_i ca_ul) ...))
         (where (ca_lr0 ...) ((lookup ca_i ca_lr) ...))
+
+        (side-condition (not (empty? (term (ca_i ...)))))
         synth-map)
 
     ; synth-prefix: The expression has been lifted to a λ-body and
@@ -194,11 +197,12 @@
               ((ca_i x_i) ...)                       ; Intransitive
               (x_c x_r)
               ((ca_ul : ca_lr) := l))
-        (done (ca_ul : ca_lr) := (PREFIX (λ (x_c x_r x_t1 x_t2 x_t3 x_i ...) l)
-                                         (ca_c0 : ca_c1)
-                                         ca_s
-                                         (ca_r0 : ca_r1)
-                                         (extd (ca_ul0 : ca_lr0) (ca_ul : ca_lr)) ...))
+
+        (done ((ca_ul : ca_lr) := (PREFIX (λ (x_c x_r x_t1 x_t2 x_t3 x_i ...) l)
+                                          (ca_c0 : ca_c1)
+                                          ca_s
+                                          (ca_r0 : ca_r1)
+                                          (extd (ca_ul0 : ca_lr0) (ca_ul : ca_lr)) ...)))
 
         (where (ca_ul0 ...) ((lookup ca_i ca_ul) ...))
         (where (ca_lr0 ...) ((lookup ca_i ca_lr) ...))
@@ -214,36 +218,46 @@
         (where ca_r1 (rc (row ca_r0) (column ca_lr)))
 
         (side-condition (not (empty? (term (ca_t ...)))))
-        synth-prefix)))
+        synth-prefix)
+
+    ;; synth-tabulate: Generate an array even if there are no
+    ;; input-arrays per-se.
+    (~> (more ()
+              ()
+              (x_c x_r)
+              ((ca_ul : ca_lr) := l))
+
+        (done ((ca_ul : ca_lr) := (TABULATE (λ (x_c x_r) l) (ROWS (ca_ul : ca_lr)) (COLUMNS (ca_ul : ca_lr)))))
+        synth-tabulate)))
 
 
 (define s1 (term (more () () (c r) (((rc 1 1) : (rc 2 2)) := ((rc [2] [2]) + (rc [2] [2]))))))
 (test-equal (redex-match? λ-calc-L c s1) #t)
-(test-->> lift s1 (term (done ((rc 1 1) : (rc 2 2)) := (MAP (λ (c r x) (x + x)) ((rc 3 3) : (rc 4 4))))))
+(test-->> lift s1 (term (done (((rc 1 1) : (rc 2 2)) := (MAP (λ (c r x) (x + x)) ((rc 3 3) : (rc 4 4)))))))
 
 
 (define s2 (term (more () () (c r) (((rc 1 1) : (rc 2 2)) := ((rc [2] [2]) + (rc [2] 5))))))
 (test-equal (redex-match? λ-calc-L c s2) #t)
-(test-->> lift s2 (term (done ((rc 1 1) : (rc 2 2)) := (MAP (λ (c r x x1) (x + x1))
-                                                            ((rc 3 3) : (rc 4 4))
-                                                            (HREP ((rc 3 5) : (rc 4 5)) 2)))))
+(test-->> lift s2 (term (done (((rc 1 1) : (rc 2 2)) := (MAP (λ (c r x x1) (x + x1))
+                                                             ((rc 3 3) : (rc 4 4))
+                                                             (HREP ((rc 3 5) : (rc 4 5)) 2))))))
 
 (define s3 (term (more () () (c r) (((rc 2 2) : (rc 10 10)) := (((rc [-1] [-1]) + (rc [-1] [0])) + (rc [0] [-1]))))))
 (test-equal (redex-match? λ-calc-L c s3) #t)
 (test-->> lift s3 (term (done
-                        ((rc 2 2) : (rc 10 10))
-                        :=
-                        (PREFIX
-                         (λ (c r x2 x x1) ((x + x1) + x2))
-                         ((rc 2 1) : (rc 10 1))
-                         (rc 1 1)
-                         ((rc 1 2) : (rc 1 10))))))
+                         (((rc 2 2) : (rc 10 10))
+                          :=
+                          (PREFIX
+                           (λ (c r x2 x x1) ((x + x1) + x2))
+                           ((rc 2 1) : (rc 10 1))
+                           (rc 1 1)
+                           ((rc 1 2) : (rc 1 10)))))))
 
 (define s4 (term (more () () (c r) (((rc 1 3) : (rc 4 4)) := (SUM ((rc [0] 1) : (rc [0] 2)))))))
 (test-equal (redex-match? λ-calc-L c s4) #t)
 (test-->> lift
          s4
-         (term (done (((rc 1 3) : (rc 4 4)) := (MAP (λ (c r) (SUM (SLICE ((rc 1 1) : (rc 4 2)) c 2 r 2))) 1 2)))))
+         (term (done (((rc 1 3) : (rc 4 4)) := (TABULATE (λ (c r) (SUM (SLICE ((rc 1 1) : (rc 4 2)) r c 1 2))) 4 2)))))
 
 ;; (require pict)
 ;; (send (pict->bitmap (render-reduction-relation lift)) save-file "/tmp/lift-rules.png" 'png 100)
