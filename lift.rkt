@@ -71,6 +71,12 @@
   [(stride (rc [i_r] [i_c])) ,(max (abs (term i_r)) (abs (term i_c)))])
 
 
+(define-metafunction λ-calc-L
+  isAbs : ca -> boolean
+  [(isAbs (r i c i)) #t]
+  [(isAbs _)         #f])
+
+
 ; TODO: Implement filling.
 (define-metafunction λ-calc-L
   sort&fill : ((ca x) ...) -> ((ca x) ...)
@@ -129,6 +135,7 @@
 
         (fresh x)
         (where (ca_r ...) (enumerate (ca_ul : ca_lr)))
+        (side-condition (not (term (isAbs ca))))
         (side-condition (not (intersect?/racket (term ((lookup ca ca_r) ...)) (term (ca_r ...)))))
         (side-condition (not (member (term ca) (term (ca_2 ...)))))
         subst-i)
@@ -147,6 +154,7 @@
 
         (fresh x)
         (where (ca_r ...) (enumerate (ca_ul : ca_lr)))
+        (side-condition (not (term (isAbs ca))))
         (side-condition (intersect?/racket (term ((lookup ca ca_r) ...)) (term (ca_r ...))))
         (side-condition (not (member (term ca) (term (ca_1 ...)))))
         (side-condition (= 1 (term (stride ca))))
@@ -173,6 +181,8 @@
 
         (where ca_ul1 (lookup ca_1 ca_ul)) ; Upper-left of area.
         (where ca_lr2 (lookup ca_2 ca_lr)) ; Lower-right of area.
+        (side-condition (not (term (isAbs ca_1))))
+        (side-condition (not (term (isAbs ca_2))))
         subst-area)
 
 
@@ -257,7 +267,9 @@
 (test-equal (redex-match? λ-calc-L c s4) #t)
 (test-->> lift
          s4
-         (term (done (((rc 1 3) : (rc 4 4)) := (TABULATE (λ (c r) (SUM (SLICE ((rc 1 1) : (rc 4 2)) r c 1 2))) 4 2)))))
+         (term (done (((rc 1 3) : (rc 4 4))
+                      :=
+                      (TABULATE (λ (c r) (SUM (SLICE ((rc 1 1) : (rc 4 2)) r c 1 2))) 4 2)))))
 
 ;; (require pict)
 ;; (send (pict->bitmap (render-reduction-relation lift)) save-file "/tmp/lift-rules.png" 'png 100)
